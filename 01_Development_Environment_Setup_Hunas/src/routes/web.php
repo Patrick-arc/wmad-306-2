@@ -30,7 +30,7 @@ Route::get('/user', function () {
 Route::get('/test-email', function () {
     $user = User::all()->shuffle()->take(1);
       Mail::raw ("Welcome to the app, $user->name! This is a test email sent by Jho.", function ($message) use ($user) {
-      $message->to->($user->email)->subject ('Laravel Docker Test Email');
+      $message->to($user->email)->subject ('Laravel Docker Test Email');
 
     });
 });
