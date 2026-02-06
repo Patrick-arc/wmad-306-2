@@ -1,5 +1,6 @@
 services:
   web:
+    hostname: localhost
     build: .
     ports:
       - "8000:80"
@@ -16,7 +17,7 @@ services:
       mailtrap:
         condition: service_healthy
     command: >
-      bash -c "/scripts/init.sh && apache2-foreground"
+      bash -c "chmod +x /scripts/init.sh && /scripts/init.sh && apache2-foreground"
   db:
     image: "mysql:9.6.0"
     environment:
