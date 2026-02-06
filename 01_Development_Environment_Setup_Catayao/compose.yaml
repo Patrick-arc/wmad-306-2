@@ -28,6 +28,8 @@ services:
   db:
     image: mariadb:10.6
     container_name: laravel_db
+    ports:
+      - "3307:3306"                  # EXPOSE DB FOR DBEAVER
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: laravel

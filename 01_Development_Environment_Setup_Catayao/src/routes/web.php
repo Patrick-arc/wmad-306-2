@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Models\User;
 
 Route::get('/', function () {
-    return view('welcome');
+    $users = User::limit(20)->get();
+    return view('welcome', compact('users'));
 });
