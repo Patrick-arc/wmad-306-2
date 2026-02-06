@@ -22,12 +22,12 @@ Route::get('/insert-user', function () {
 });
 
 Route::get('/users', function () {
-    return User::where('name', 'like', '%ella%')->get();
+    return User::where('name', 'like', '%Dr.%')->get();
 });
 
 route::get('/test-email', function () {
    $user = User::all()->shuffle()->first();
    Mail::raw("Hello from Laravel!  $user->name!", function ($message) use ($user) {
-       $message->to($user->email)->subject('Hello from Laravel');
+       $message->to($user->email)->subject('Hello from Laravel!S');
     });
 });
