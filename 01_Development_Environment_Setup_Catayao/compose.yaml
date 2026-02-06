@@ -4,7 +4,7 @@ services:
   web:
     build: .
     container_name: laravel_web
-    user: "${UID}:${GID}"
+    user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "8000:80"
       - "5173:5173"
@@ -39,7 +39,7 @@ services:
       - ./_setup/db_scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ularavel", "-plaravel"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libwebp-dev \
     libxml2-dev \
+    libzip-dev \
     mariadb-client \
     unzip \
     zip \
@@ -30,14 +31,15 @@ RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
     pcntl \
-    sockets
+    sockets \
+    zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN a2enmod rewrite
 COPY ./_setup/web_scripts/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Install Node.js LTS properly (NO nvm)
+# Node.js LTS (includes npm)
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
     && apt-get install -y nodejs
 
