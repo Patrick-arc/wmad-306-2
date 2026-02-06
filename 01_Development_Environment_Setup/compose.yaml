@@ -1,6 +1,9 @@
+version: "3.9"
+
 services:
   web:
     build: .
+    container_name: laravel_web
     user: "${UID}:${GID}"
     ports:
       - "8000:80"
@@ -17,33 +20,41 @@ services:
       mailtrap:
         condition: service_healthy
     command: >
-      bash -c "dos2unix /scripts/* && chmod +x /scripts/* && /scripts/init.sh && apache2-foreground"
+      bash -c "dos2unix /scripts/* &&
+               chmod +x /scripts/* &&
+               /scripts/init.sh &&
+               apache2-foreground"
+
   db:
-    image: "mysql:9.6.0"
+    image: mariadb:10.6
+    container_name: laravel_db
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
     networks:
       - db_network
     volumes:
       - ./_setup/db_scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ularavel", "-plaravel"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+
   mailtrap:
     image: axllent/mailpit:latest
+    container_name: laravel_mailpit
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
       - mailtrap_network
     volumes:
-      - ./mailtrap_data:/data
+      - mailtrap_data:/data
     environment:
       MP_MAX_MESSAGES: 5000
       MP_DATABASE: /data/mailpit.db
@@ -63,3 +74,4 @@ networks:
 
 volumes:
   db_data:
+  mailtrap_data:
