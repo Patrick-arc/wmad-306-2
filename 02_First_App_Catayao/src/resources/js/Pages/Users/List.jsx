@@ -3,9 +3,54 @@ import { useState } from 'react'
 
 export default function List() {
   const users = [
-    { id: 1, name: 'Alice Johnson', subject: 'Project Update', body: 'The project is almost done. Final review tomorrow.' },
-    { id: 2, name: 'Bob Smith', subject: 'Meeting Reminder', body: 'Reminder about the 3PM meeting today.' },
-    { id: 3, name: 'Charlie Cruz', subject: 'Welcome!', body: 'Welcome to the platform. Let us know if you need help.' },
+    {
+      id: 1,
+      name: 'Alice Johnson',
+      subject: 'Project Update',
+      body: 'The project is almost done. Final review tomorrow.',
+    },
+    {
+      id: 2,
+      name: 'Bob Smith',
+      subject: 'Meeting Reminder',
+      body: 'Reminder about the 3PM meeting today.',
+    },
+    {
+      id: 3,
+      name: 'Charlie Cruz',
+      subject: 'Welcome!',
+      body: 'Welcome to the platform. Let us know if you need help.',
+    },
+    {
+      id: 4,
+      name: 'Diana Reyes',
+      subject: 'Invoice Attached',
+      body: 'Please find the invoice for last month attached.',
+    },
+    {
+      id: 5,
+      name: 'Ethan Walker',
+      subject: 'Server Maintenance',
+      body: 'Scheduled maintenance tonight from 12AM to 2AM.',
+    },
+    {
+      id: 6,
+      name: 'Fiona Lee',
+      subject: 'Design Feedback',
+      body: 'I’ve left some comments on the latest design mockups.',
+    },
+    {
+      id: 7,
+      name: 'George Tan',
+      subject: 'New Feature Idea',
+      body: 'I have an idea for a feature that could improve onboarding.',
+    },
+    {
+      id: 8,
+      name: 'Hannah Kim',
+      subject: 'Weekly Report',
+      body: 'Here is the weekly progress report for the team.',
+    },
   ]
 
   const [activeId, setActiveId] = useState(users[0].id)
@@ -15,38 +60,28 @@ export default function List() {
     <>
       <Head title="Inbox" />
 
-      <div className="mail-app">
-        {/* SIDEBAR */}
-        <aside className="sidebar">
-          <h2>📨 Mail</h2>
-          <button className="compose">+ Compose</button>
-
-          <nav>
-            <a className="active">Inbox</a>
-            <a>Sent</a>
-            <a>Drafts</a>
-            <a>Trash</a>
-          </nav>
-        </aside>
-
+      <div className="mail-layout">
         {/* INBOX LIST */}
-        <section className="inbox">
+        <aside className="inbox">
           {users.map(mail => (
             <div
               key={mail.id}
-              className={`mail-item ${mail.id === activeId ? 'selected' : ''}`}
+              className={`mail-item ${
+                mail.id === activeId ? 'selected' : ''
+              }`}
               onClick={() => setActiveId(mail.id)}
             >
               <strong>{mail.name}</strong>
               <span>{mail.subject}</span>
             </div>
           ))}
-        </section>
+        </aside>
 
         {/* MAIL VIEW */}
         <section className="viewer">
-          <h3>{activeMail.subject}</h3>
+          <h2>{activeMail.subject}</h2>
           <p className="from">From: {activeMail.name}</p>
+
           <div className="body">{activeMail.body}</div>
 
           <div className="actions">
@@ -57,54 +92,10 @@ export default function List() {
       </div>
 
       <style>{`
-        body {
-          margin: 0;
-          font-family: system-ui, sans-serif;
-          background: #0f172a;
-          color: #e5e7eb;
-        }
-
-        .mail-app {
+        .mail-layout {
           display: grid;
-          grid-template-columns: 220px 320px 1fr;
-          height: calc(100vh - 60px);
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-          background: #020617;
-          border-right: 1px solid #1e293b;
-          padding: 1rem;
-        }
-
-        .sidebar h2 {
-          margin: 0 0 1rem;
-        }
-
-        .compose {
-          width: 100%;
-          padding: 0.6rem;
-          margin-bottom: 1rem;
-          border-radius: 8px;
-          border: none;
-          background: #6366f1;
-          color: white;
-          cursor: pointer;
-        }
-
-        .sidebar nav a {
-          display: block;
-          padding: 0.5rem;
-          border-radius: 6px;
-          color: #cbd5f5;
-          text-decoration: none;
-          margin-bottom: 0.3rem;
-          cursor: pointer;
-        }
-
-        .sidebar nav a.active,
-        .sidebar nav a:hover {
-          background: #1e293b;
+          grid-template-columns: 320px 1fr;
+          height: 100%;
         }
 
         /* INBOX */
@@ -137,10 +128,9 @@ export default function List() {
         /* VIEWER */
         .viewer {
           padding: 2rem;
-          background: #0f172a;
         }
 
-        .viewer h3 {
+        .viewer h2 {
           margin-top: 0;
           font-size: 1.5rem;
         }
