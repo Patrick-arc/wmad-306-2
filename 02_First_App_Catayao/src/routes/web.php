@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
+use Inertia\Inertia;
 
-Route::get('/', [UserController::class, 'index']);
-Route::get('/users', [UserController::class, 'index']);
+Route::get('/', fn () => Inertia::render('Users/List'));
