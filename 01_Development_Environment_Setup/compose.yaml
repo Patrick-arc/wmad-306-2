@@ -21,7 +21,7 @@ services:
   db:
     image: "mysql:9.6.0"
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_ROOT_PASSWORD=password
     ports:
       - "3306:3306"
     networks:
