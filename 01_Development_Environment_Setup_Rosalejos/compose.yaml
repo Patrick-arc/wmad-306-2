@@ -60,6 +60,5 @@ services:
 networks:
   db_network:
   mailtrap_network:
-
 volumes:
   db_data:
