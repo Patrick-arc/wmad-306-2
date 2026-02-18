@@ -4,6 +4,13 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
+
+Route::resource('projects', ProjectController::class)->middleware(['auth', 'verified']);
+Route::resource('tasks', TaskController::class)->middleware(['auth', 'verified']);
+Route::post('/projects/{project}/tasks', [ProjectController::class, 'storeTask'])->name('projects.tasks.store');
+Route::delete('/tasks/{task}', [ProjectController::class, 'destroyTask'])->name('tasks.destroy');
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
