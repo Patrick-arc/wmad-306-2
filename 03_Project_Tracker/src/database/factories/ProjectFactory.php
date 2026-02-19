@@ -19,7 +19,6 @@ class ProjectFactory extends Factory
     return [
         'title' => $this->faker->sentence(),
         'description' => $this->faker->paragraph(),
-        'user_id' => \App\Models\User::first()->id ?? \App\Models\User::factory(),
     ];
 }
 }

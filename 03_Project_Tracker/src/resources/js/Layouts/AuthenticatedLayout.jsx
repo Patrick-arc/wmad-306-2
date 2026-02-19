@@ -28,10 +28,18 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
-                                    // Custom active state with Red indicator
                                     className="text-gray-400 hover:text-[#FF2D20] transition-colors duration-300"
                                 >
                                     Dashboard
+                                </NavLink>
+
+                                {       }
+                                <NavLink
+                                    href={route('projects.index')}
+                                    active={route().current('projects.index')}
+                                    className="text-gray-400 hover:text-[#FF2D20] transition-colors duration-300"
+                                >
+                                    Projects
                                 </NavLink>
                             </div>
                         </div>

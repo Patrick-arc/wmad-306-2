@@ -46,6 +46,10 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        \App\Models\Project::factory()->count(10)->create([
+            'user_id' => $user->id,
+        ]);
+
+        return redirect(route('projects.index', absolute: false));
     }
 }
