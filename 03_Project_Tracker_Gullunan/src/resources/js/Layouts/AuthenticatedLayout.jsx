@@ -19,13 +19,24 @@ export default function AuthenticatedLayout({ header, children }) {
       />
 
       <div className="relative min-h-screen selection:bg-[#FF2D20] selection:text-white">
-        <nav className="border-b border-gray-100 bg-white">
+        <nav className="border-b border-gray-700 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex shrink-0 items-center">
-                  <Link href="/">
-                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
+                  <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-900"></div>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-gray-200 font-bold text-lg">Project Tracker</span>
+                      <span className="text-gray-400 text-xs">Manage Your Work</span>
+                    </div>
                   </Link>
                 </div>
 
@@ -35,6 +46,12 @@ export default function AuthenticatedLayout({ header, children }) {
                     active={route().current('dashboard')}
                   >
                     Dashboard
+                  </NavLink>
+                  <NavLink
+                    href={route('profile.edit')}
+                    active={route().current('profile.edit')}
+                  >
+                    Profile
                   </NavLink>
                 </div>
               </div>
@@ -46,7 +63,7 @@ export default function AuthenticatedLayout({ header, children }) {
                       <span className="inline-flex rounded-md">
                         <button
                           type="button"
-                          className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                          className="inline-flex items-center rounded-md border border-transparent bg-gray-800/50 px-3 py-2 text-sm font-medium leading-4 text-gray-200 transition duration-150 ease-in-out hover:text-white hover:bg-gray-700/50 focus:outline-none"
                         >
                           {user.name}
                           <svg
@@ -66,9 +83,6 @@ export default function AuthenticatedLayout({ header, children }) {
                     </Dropdown.Trigger>
 
                     <Dropdown.Content>
-                      <Dropdown.Link href={route('profile.edit')}>
-                        Profile
-                      </Dropdown.Link>
                       <Dropdown.Link href={route('logout')} method="post" as="button">
                         Log Out
                       </Dropdown.Link>
@@ -127,12 +141,6 @@ export default function AuthenticatedLayout({ header, children }) {
             </div>
           </div>
         </nav>
-
-        {header && (
-          <header className="bg-white shadow">
-            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{header}</div>
-          </header>
-        )}
 
         <main>{children}</main>
       </div>

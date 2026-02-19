@@ -386,6 +386,76 @@ export default function Dashboard({ tasks, projects }) {
                         </div>
                     )}
 
+                    {/* Pro Tips Section - Only show on dashboard tab */}
+                    {activeTab === 'dashboard' && (
+                        <div style={{
+                            padding: '1.5rem 0',
+                            animation: 'fadeIn 0.8s ease-out'
+                        }}>
+                            <div style={{
+                                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%)',
+                                backdropFilter: 'blur(10px)',
+                                borderRadius: '1rem',
+                                padding: '1.5rem',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.75rem',
+                                    marginBottom: '1rem'
+                                }}>
+                                    <span style={{ fontSize: '1.5rem' }}>💡</span>
+                                    <h3 style={{
+                                        fontSize: '1.25rem',
+                                        fontWeight: 'bold',
+                                        color: 'white',
+                                        margin: 0
+                                    }}>Pro Tips</h3>
+                                </div>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                                    gap: '1rem',
+                                    textAlign: 'left'
+                                }}>
+                                    <div style={{
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        padding: '1rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    }}>
+                                        <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem' }}>
+                                            <span style={{ color: '#60a5fa', fontWeight: '600' }}>🎯 Priority:</span> Start with high-priority tasks first to maximize productivity
+                                        </p>
+                                    </div>
+                                    <div style={{
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        padding: '1rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    }}>
+                                        <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem' }}>
+                                            <span style={{ color: '#86efac', fontWeight: '600' }}>📅 Planning:</span> Break large projects into smaller, manageable tasks
+                                        </p>
+                                    </div>
+                                    <div style={{
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        padding: '1rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    }}>
+                                        <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem' }}>
+                                            <span style={{ color: '#fbbf24', fontWeight: '600' }}>📊 Progress:</span> Update task status regularly to track your achievements
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* ================= PROJECTS ================= */}
                     {activeTab === 'projects' && (
                         <div style={{
@@ -824,8 +894,81 @@ export default function Dashboard({ tasks, projects }) {
                                             </button>
                                         </div>
                                     </form>
-                                </div>
+                            </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* Motivation Tips - Show only on projects tab when not adding new item */}
+                    {activeTab === 'projects' && !showAddForm && (
+                        <div style={{
+                            padding: '1rem 1.5rem',
+                            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%)',
+                            borderRadius: '1rem',
+                            border: '1px solid rgba(34, 197, 94, 0.2)',
+                            textAlign: 'center',
+                            marginBottom: '1.5rem'
+                        }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                marginBottom: '0.75rem'
+                            }}>
+                                <span style={{ fontSize: '1.25rem' }}>🚀</span>
+                                <h4 style={{
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    color: 'white',
+                                    margin: 0
+                                }}>Motivation Tips</h4>
+                            </div>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '0.75rem',
+                                textAlign: 'left'
+                            }}>
+                                <div style={{
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                }}>
+                                    <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.8rem' }}>
+                                        <span style={{ color: '#86efac', fontWeight: '600' }}>💪</span> Start small, build momentum
+                                    </p>
+                                </div>
+                                <div style={{
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                }}>
+                                    <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.8rem' }}>
+                                        <span style={{ color: '#60a5fa', fontWeight: '600' }}>⏰</span> Set realistic deadlines
+                                    </p>
+                                </div>
+                                <div style={{
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                }}>
+                                    <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.8rem' }}>
+                                        <span style={{ color: '#fbbf24', fontWeight: '600' }}>🎯</span> Focus on progress, not perfection
+                                    </p>
+                                </div>
+                            </div>
+                            <p style={{
+                                margin: '0.75rem 0 0 0',
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                fontSize: '0.8rem',
+                                fontStyle: 'italic'
+                            }}>
+                                "Every great project starts with a single step. You've got this! 💫"
+                            </p>
                         </div>
                     )}
 
