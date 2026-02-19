@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('projects', ProjectController::class);
+});
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+'@vitejs/plugin-react';
 
 export default defineConfig({
     plugins: [
@@ -10,4 +11,12 @@ export default defineConfig({
         }),
         react(),
     ],
+    server:{
+        http: false,
+        host: true,
+        hmr: {
+            host: 'localhost',
+            protocol: 'ws',
+        }
+    }
 });
