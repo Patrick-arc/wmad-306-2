@@ -55,9 +55,6 @@ export default function Dashboard() {
             <a href="/projects" className="block p-3 rounded-lg hover:bg-blue-100">
               📁 Projects
             </a>
-            <a href="/tasks" className="block p-3 rounded-lg hover:bg-blue-100">
-              📝 Tasks
-            </a>
           </nav>
         </div>
 
