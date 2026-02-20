@@ -4,6 +4,11 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ProjectController;
+
+Route::resource('projects', ProjectController::class)
+    ->middleware('auth');
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
