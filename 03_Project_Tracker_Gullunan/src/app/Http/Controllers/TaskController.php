@@ -45,7 +45,7 @@ class TaskController extends Controller
         $due_date = null;
         if ($validated['due_date']) {
             $due_date = $validated['due_date'];
-            if ($validated['due_time']) {
+            if (isset($validated['due_time']) && $validated['due_time']) {
                 $due_date .= ' ' . $validated['due_time'];
             }
         }
@@ -98,7 +98,7 @@ class TaskController extends Controller
         $due_date = null;
         if ($validated['due_date']) {
             $due_date = $validated['due_date'];
-            if ($validated['due_time']) {
+            if (isset($validated['due_time']) && $validated['due_time']) {
                 $due_date .= ' ' . $validated['due_time'];
             }
         }

@@ -18,6 +18,7 @@ export default function Dashboard({ tasks, projects }) {
     const [editingTask, setEditingTask] = useState(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showEmojiPickerEdit, setShowEmojiPickerEdit] = useState(false);
+    const [taskFilter, setTaskFilter] = useState('all'); // 'all', 'completed', 'pending'
 
     const addForm = useForm({
         title: '',
@@ -90,6 +91,18 @@ export default function Dashboard({ tasks, projects }) {
         editForm.setData('emoji', emoji);
         setShowEmojiPickerEdit(false);
     };
+
+    const handleTaskFilter = (filter) => {
+        setTaskFilter(filter);
+        setActiveTab('tasks'); // Switch to tasks tab to show filtered results
+    };
+
+    // Filter tasks based on selected filter
+    const filteredTasks = tasks ? tasks.filter(task => {
+        if (taskFilter === 'completed') return task.is_completed;
+        if (taskFilter === 'pending') return !task.is_completed;
+        return true; // 'all' filter
+    }) : [];
 
     return (
         <AuthenticatedLayout>
@@ -228,23 +241,27 @@ export default function Dashboard({ tasks, projects }) {
                                 gap: '1.5rem'
                             }}>
                                 {/* Total Tasks */}
-                                <div style={{
-                                    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)',
-                                    padding: '1.5rem',
-                                    borderRadius: '1rem',
-                                    border: '1px solid rgba(59, 130, 246, 0.3)',
-                                    boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.1)',
-                                    transition: 'all 0.3s',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 20px 35px -5px rgba(59, 130, 246, 0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(59, 130, 246, 0.1)';
-                                }}>
+                                <div 
+                                    onClick={() => handleTaskFilter('all')}
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)',
+                                        padding: '1.5rem',
+                                        borderRadius: '1rem',
+                                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                                        boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.1)',
+                                        transition: 'all 0.3s',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-4px)';
+                                        e.currentTarget.style.boxShadow = '0 20px 35px -5px rgba(59, 130, 246, 0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(59, 130, 246, 0.1)';
+                                    }}
+                                    title="Click to view all tasks"
+                                >
                                     <div style={{
                                         display: 'flex',
                                         alignItems: 'flex-start',
@@ -280,23 +297,27 @@ export default function Dashboard({ tasks, projects }) {
                                 </div>
 
                                 {/* Completed Tasks */}
-                                <div style={{
-                                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%)',
-                                    padding: '1.5rem',
-                                    borderRadius: '1rem',
-                                    border: '1px solid rgba(34, 197, 94, 0.3)',
-                                    boxShadow: '0 10px 25px -5px rgba(34, 197, 94, 0.1)',
-                                    transition: 'all 0.3s',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 20px 35px -5px rgba(34, 197, 94, 0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(34, 197, 94, 0.1)';
-                                }}>
+                                <div 
+                                    onClick={() => handleTaskFilter('completed')}
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%)',
+                                        padding: '1.5rem',
+                                        borderRadius: '1rem',
+                                        border: '1px solid rgba(34, 197, 94, 0.3)',
+                                        boxShadow: '0 10px 25px -5px rgba(34, 197, 94, 0.1)',
+                                        transition: 'all 0.3s',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-4px)';
+                                        e.currentTarget.style.boxShadow = '0 20px 35px -5px rgba(34, 197, 94, 0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(34, 197, 94, 0.1)';
+                                    }}
+                                    title="Click to view completed tasks"
+                                >
                                     <div style={{
                                         display: 'flex',
                                         alignItems: 'flex-start',
@@ -332,23 +353,27 @@ export default function Dashboard({ tasks, projects }) {
                                 </div>
 
                                 {/* Pending Tasks */}
-                                <div style={{
-                                    background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.2) 0%, rgba(251, 146, 60, 0.1) 100%)',
-                                    padding: '1.5rem',
-                                    borderRadius: '1rem',
-                                    border: '1px solid rgba(251, 146, 60, 0.3)',
-                                    boxShadow: '0 10px 25px -5px rgba(251, 146, 60, 0.1)',
-                                    transition: 'all 0.3s',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 20px 35px -5px rgba(251, 146, 60, 0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(251, 146, 60, 0.1)';
-                                }}>
+                                <div 
+                                    onClick={() => handleTaskFilter('pending')}
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.2) 0%, rgba(251, 146, 60, 0.1) 100%)',
+                                        padding: '1.5rem',
+                                        borderRadius: '1rem',
+                                        border: '1px solid rgba(251, 146, 60, 0.3)',
+                                        boxShadow: '0 10px 25px -5px rgba(251, 146, 60, 0.1)',
+                                        transition: 'all 0.3s',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-4px)';
+                                        e.currentTarget.style.boxShadow = '0 20px 35px -5px rgba(251, 146, 60, 0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(251, 146, 60, 0.1)';
+                                    }}
+                                    title="Click to view pending tasks"
+                                >
                                     <div style={{
                                         display: 'flex',
                                         alignItems: 'flex-start',
@@ -1004,6 +1029,18 @@ export default function Dashboard({ tasks, projects }) {
                                         gap: '0.5rem'
                                     }}>
                                         📋 Task Holder
+                                        {taskFilter !== 'all' && (
+                                            <span style={{
+                                                background: 'rgba(255, 255, 255, 0.2)',
+                                                padding: '0.25rem 0.5rem',
+                                                borderRadius: '0.375rem',
+                                                fontSize: '0.75rem',
+                                                fontWeight: '600',
+                                                textTransform: 'uppercase'
+                                            }}>
+                                                {taskFilter === 'completed' ? '✅ Completed' : '⏳ Pending'}
+                                            </span>
+                                        )}
                                     </h3>
                                     <p style={{
                                         fontSize: '0.875rem',
@@ -1019,13 +1056,13 @@ export default function Dashboard({ tasks, projects }) {
                                     maxHeight: '800px',
                                     overflowY: 'auto'
                                 }}>
-                                    {tasks && tasks.length > 0 ? (
+                                    {filteredTasks && filteredTasks.length > 0 ? (
                                         <div style={{
                                             display: 'grid',
                                             gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
                                             gap: '1rem'
                                         }}>
-                                            {tasks.map((task) => (
+                                            {filteredTasks.map((task) => (
                                                 <div
                                                     key={task.id}
                                                     style={{
@@ -1408,7 +1445,14 @@ export default function Dashboard({ tasks, projects }) {
                                             color: 'rgba(255, 255, 255, 0.5)',
                                             padding: '2rem',
                                             fontSize: '0.875rem'
-                                        }}>No tasks yet. Create a project to get started!</p>
+                                        }}>
+                                            {taskFilter === 'completed' 
+                                                ? 'No completed tasks yet!' 
+                                                : taskFilter === 'pending' 
+                                                ? 'No pending tasks!' 
+                                                : 'No tasks yet. Create a project to get started!'
+                                            }
+                                        </p>
                                     )}
                                 </div>
                             </div>
