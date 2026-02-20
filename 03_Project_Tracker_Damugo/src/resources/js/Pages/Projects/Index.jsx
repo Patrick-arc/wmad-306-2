@@ -1,42 +1,61 @@
 import React, { useState, useEffect } from 'react';
+import Pagination from '@mui/material/Pagination';
+import { Tabs, Tab } from '@mui/material';
 import { Head, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import {
     Box,
     Button,
-    Card,
-    CardContent,
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions,
     DialogContentText,
-    Collapse,
-    Grid,
     IconButton,
     TextField,
     Typography,
-    Chip,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Grid,
+    Card,
+    CardContent,
+    CardActions,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import FolderIcon from '@mui/icons-material/Folder';
-import TaskIcon from '@mui/icons-material/Task';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DoneIcon from '@mui/icons-material/Done';
+import UndoIcon from '@mui/icons-material/Undo';
 
 export default function Index() {
-    const { projects } = usePage().props;
-    const [flippedId, setFlippedId] = useState(null);
+    const { projects, tasksCount = 0 } = usePage().props;
+    // normalize projects to an array (handles paginated or plain collections)
+    const projectsArr = Array.isArray(projects) ? projects : (projects && projects.data ? projects.data : []);
+    const [projectsList, setProjectsList] = useState(projectsArr || []);
+    const [activeTab, setActiveTab] = useState('todo');
+    const [page, setPage] = useState(1);
+    const projectsPerPage = 6;
+    const [contentVisible, setContentVisible] = useState(true);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [priority, setPriority] = useState('medium');
+    const [status, setStatus] = useState('todo');
     const [editing, setEditing] = useState(null);
     const [formOpen, setFormOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
 
-    // Open modal if ?new=1 is in the URL
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
@@ -45,19 +64,24 @@ export default function Index() {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
-    }, []);
+        // keep local list in sync when server props change (normalize paginated responses)
+        const newArr = Array.isArray(projects) ? projects : (projects && projects.data ? projects.data : []);
+        setProjectsList(newArr || []);
+    }, [projects]);
 
     function submit(e) {
         e.preventDefault();
 
-        const data = { title, description };
+        const data = { title, description, priority, status };
 
         if (editing) {
             router.put(route('projects.update', editing.id), data, {
                 onSuccess: () => {
                     setEditing(null);
                     setTitle('');
-                    setDescription('');
+                                            setDescription('');
+                                            setPriority('medium');
+                                            setStatus('todo');
                     setFormOpen(false);
                 },
             });
@@ -66,6 +90,8 @@ export default function Index() {
                 onSuccess: () => {
                     setTitle('');
                     setDescription('');
+                    setPriority('medium');
+                    setStatus('todo');
                     setFormOpen(false);
                 },
             });
@@ -76,6 +102,8 @@ export default function Index() {
         setEditing(p);
         setTitle(p.title);
         setDescription(p.description || '');
+        setPriority(p.priority || 'medium');
+        setStatus(p.status || 'todo');
         setFormOpen(true);
     }
 
@@ -158,6 +186,10 @@ export default function Index() {
                     />
                 </Box>
 
+                {/* Tabs are always visible (even with zero projects) */}
+
+                
+
                 {/* Create / Edit Modal */}
                 <Dialog
                     open={formOpen}
@@ -225,6 +257,46 @@ export default function Index() {
                                     '& .MuiInputLabel-root': { color: '#DEB887' },
                                 }}
                             />
+                            <Grid container spacing={2}>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth>
+                                        <InputLabel sx={{ color: '#DEB887' }}>Priority</InputLabel>
+                                        <Select
+                                            label="Priority"
+                                            value={priority}
+                                            onChange={(e) => setPriority(e.target.value)}
+                                            sx={{
+                                                '& .MuiSelect-select': {
+                                                    color: '#F5DEB3',
+                                                },
+                                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(212, 175, 123, 0.18)' },
+                                            }}
+                                        >
+                                            <MenuItem value="low">Low</MenuItem>
+                                            <MenuItem value="medium">Medium</MenuItem>
+                                            <MenuItem value="high">High</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth>
+                                        <InputLabel sx={{ color: '#DEB887' }}>Status</InputLabel>
+                                        <Select
+                                            label="Status"
+                                            value={status}
+                                            onChange={(e) => setStatus(e.target.value)}
+                                            sx={{
+                                                '& .MuiSelect-select': { color: '#F5DEB3' },
+                                                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(212, 175, 123, 0.18)' },
+                                            }}
+                                        >
+                                            <MenuItem value="todo">To Do</MenuItem>
+                                            <MenuItem value="in_progress">In Progress</MenuItem>
+                                            <MenuItem value="done">Done</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
                             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 1 }}>
                                 {editing && (
                                     <Button
@@ -232,6 +304,8 @@ export default function Index() {
                                             setEditing(null);
                                             setTitle('');
                                             setDescription('');
+                                            setPriority('medium');
+                                            setStatus('todo');
                                             setFormOpen(false);
                                         }}
                                         sx={{
@@ -262,298 +336,228 @@ export default function Index() {
                     </DialogContent>
                 </Dialog>
 
-                {/* Projects Grid */}
-                {projects?.length > 0 ? (
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 3 }}>
-                        {projects.map((p) => {
-                            const flipped = flippedId === p.id;
+                {/* Projects list (Tasks-style) */}
+                <Box sx={{ mb: 2 }}>
+                    {/* Status tabs (always render) */}
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                        {(() => {
+                            const counts = {
+                                todo: (projectsList || []).filter(p => (p.status || 'todo') === 'todo').length,
+                                in_progress: (projectsList || []).filter(p => (p.status || 'todo') === 'in_progress').length,
+                                done: (projectsList || []).filter(p => (p.status || 'todo') === 'done').length,
+                            };
                             return (
-                                <Box key={p.id} sx={{ width: '100%' }}>
-                                    <Box
-                                        onClick={() => setFlippedId(flipped ? null : p.id)}
-                                        sx={{
-                                            perspective: 1200,
-                                            width: '100%',
-                                            aspectRatio: '1 / 1',
-                                            minHeight: 140,
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        <Box
-                                            sx={{
-                                                position: 'relative',
-                                                width: '100%',
-                                                height: '100%',
-                                                transition: 'transform 0.7s cubic-bezier(.2,.8,.2,1)',
-                                                transformStyle: 'preserve-3d',
-                                                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                                <Tabs
+                                    value={activeTab}
+                                            onChange={(_, val) => {
+                                                setContentVisible(false);
+                                                setTimeout(() => {
+                                                    setActiveTab(val);
+                                                    setPage(1);
+                                                    setContentVisible(true);
+                                                }, 220);
                                             }}
-                                        >
-                                            {/* Front face */}
-                                            <Card
-                                                sx={{
-                                                    backgroundColor: '#161414',
-                                                    border: '1px solid rgba(212, 175, 123, 0.28)',
-                                                    transition: 'all 0.28s ease',
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    overflow: 'hidden',
-                                                    backfaceVisibility: 'hidden',
-                                                    WebkitBackfaceVisibility: 'hidden',
-                                                    '&:hover': {
-                                                        transform: 'translateY(-6px)',
-                                                        boxShadow: '0 18px 46px rgba(210, 105, 30, 0.22)',
-                                                        borderColor: 'rgba(212, 175, 123, 0.48)',
-                                                    },
-                                                }}
-                                            >
-                                                <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 1.25 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                                                        <FolderIcon sx={{ fontSize: '1.8rem', color: '#bfa76a', mr: 1 }} />
-                                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={(e) => { e.stopPropagation(); startEdit(p); }}
-                                                               sx={{
-                                                                   backgroundColor: 'transparent',
-                                                                   color: '#bfa76a',
-                                                                   transition: 'transform 140ms ease, box-shadow 160ms ease, background-color 120ms ease',
-                                                                   '&:hover': { transform: 'translateY(-2px) scale(1.04)', backgroundColor: 'rgba(191,167,106,0.06)', boxShadow: '0 6px 14px rgba(191,167,106,0.06)' },
-                                                                   '&:active': { transform: 'translateY(0) scale(0.995)' },
-                                                               }}
-                                                            >
-                                                                <EditIcon fontSize="small" />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={(e) => { e.stopPropagation(); destroy(p); }}
-                                                               sx={{
-                                                                   backgroundColor: 'transparent',
-                                                                   color: '#ff6b6b',
-                                                                   transition: 'transform 140ms ease, box-shadow 160ms ease, background-color 120ms ease',
-                                                                   '&:hover': { transform: 'translateY(-2px) scale(1.04)', backgroundColor: 'rgba(255,107,107,0.08)', boxShadow: '0 6px 14px rgba(255,107,107,0.04)' },
-                                                                   '&:active': { transform: 'translateY(0) scale(0.995)' },
-                                                               }}
-                                                            >
-                                                                <DeleteIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Box>
-                                                    </Box>
-                                                    <Box sx={{ mt: 1 }}>
-                                                        <Typography
-                                                            variant="subtitle1"
-                                                            sx={{
-                                                                color: '#7a5c2e',
-                                                                fontWeight: 700,
-                                                                mb: 0.5,
-                                                                fontSize: '1rem',
-                                                                wordBreak: 'break-word',
-                                                            }}
-                                                        >
-                                                            {p.title}
-                                                        </Typography>
-                                                        <Box sx={{ flex: 1, overflow: 'auto', pr: 0.5 }}>
-                                                            <Typography
-                                                                variant="body2"
-                                                                sx={{
-                                                                    color: '#F5DEB3',
-                                                                    whiteSpace: 'pre-wrap',
-                                                                    lineHeight: 1.4,
-                                                                    fontSize: '0.9rem',
-                                                                }}
-                                                            >
-                                                                {p.description || (
-                                                                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-                                                                        <TaskIcon sx={{ color: '#DEB887', fontSize: '1rem' }} />
-                                                                        <Box component="span">No description added</Box>
-                                                                    </Box>
-                                                                )}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Box>
-                                                    <Box sx={{ mt: 1 }}>
-                                                        {p.tasks_count > 0 && (
-                                                            <Chip
-                                                                icon={<TaskIcon sx={{ color: '#bfa76a' }} />}
-                                                                label={`${p.tasks_count} task${p.tasks_count !== 1 ? 's' : ''}`}
-                                                                size="small"
-                                                                sx={{ backgroundColor: 'rgba(191,167,106,0.13)', color: '#bfa76a', fontWeight: 600 }}
-                                                            />
-                                                        )}
-                                                    </Box>
-                                                </CardContent>
-                                            </Card>
-
-                                            {/* Back face (tasks) */}
-                                            <Card
-                                                sx={{
-                                                    backgroundColor: '#161414',
-                                                    border: '1px solid rgba(212, 175, 123, 0.28)',
-                                                    transition: 'all 0.28s ease',
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    overflow: 'auto',
-                                                    transform: 'rotateY(180deg)',
-                                                    backfaceVisibility: 'hidden',
-                                                    WebkitBackfaceVisibility: 'hidden',
-                                                    // Dark, thin scrollbar styling (WebKit + Firefox)
-                                                    '&::-webkit-scrollbar': {
-                                                        width: 8,
-                                                        height: 8,
-                                                    },
-                                                    '&::-webkit-scrollbar-track': {
-                                                        background: 'transparent',
-                                                    },
-                                                    '&::-webkit-scrollbar-thumb': {
-                                                        backgroundColor: 'rgba(191,167,106,0.32)',
-                                                        borderRadius: 999,
-                                                        border: '2px solid transparent',
-                                                        backgroundClip: 'padding-box',
-                                                    },
-                                                    '&::-webkit-scrollbar-thumb:hover': {
-                                                        backgroundColor: 'rgba(191,167,106,0.48)',
-                                                    },
-                                                    // Firefox
-                                                    scrollbarWidth: 'thin',
-                                                    scrollbarColor: 'rgba(191,167,106,0.32) transparent',
-                                                }}
-                                            >
-                                                <CardContent sx={{ p: 1.25, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                        <Typography variant="subtitle1" sx={{ color: '#bfa76a', fontWeight: 800 }}>{p.title} — Tasks</Typography>
-                                                        <Button size="small" onClick={(e) => { e.stopPropagation(); setFlippedId(null); }} sx={{ color: '#DEB887' }}>Close</Button>
-                                                    </Box>
-                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: '100%', overflow: 'auto' }}>
-                                                        {p.tasks && p.tasks.length > 0 ? (
-                                                            p.tasks.map((t) => (
-                                                                <Box key={t.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1, borderRadius: 1, background: 'rgba(255,255,255,0.02)' }}>
-                                                                    <Box sx={{ flex: 1, pr: 1 }}>
-                                                                        <Typography sx={{ color: '#F5DEB3', fontWeight: 700 }}>{t.title}</Typography>
-                                                                        {t.description && <Typography sx={{ color: '#bdb76b', fontSize: '0.85rem' }}>{t.description}</Typography>}
-                                                                    </Box>
-                                                                    {t.completed ? (
-                                                                        <Chip label="Done" size="small" sx={{ backgroundColor: 'rgba(50,200,100,0.12)', color: '#34c759' }} />
-                                                                    ) : (
-                                                                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#bfa76a', border: '1px solid rgba(191,167,106,0.14)' }} />
-                                                                    )}
-                                                                </Box>
-                                                            ))
-                                                        ) : (
-                                                            <Typography sx={{ color: '#BDB76B' }}>No tasks for this project yet.</Typography>
-                                                        )}
-                                                    </Box>
-                                                </CardContent>
-                                            </Card>
-                                        </Box>
-                                    </Box>
-                                </Box>
+                                    sx={{
+                                        '& .MuiTabs-flexContainer': { gap: 1 },
+                                        '& .MuiTab-root': {
+                                            textTransform: 'none',
+                                            color: '#a88734',
+                                            fontWeight: 800,
+                                            minHeight: 40,
+                                            px: 1.5,
+                                            transition: 'transform 220ms cubic-bezier(.2,.8,.2,1), background-color 220ms cubic-bezier(.2,.8,.2,1), color 220ms ease, box-shadow 220ms ease',
+                                        },
+                                        '& .MuiTab-root.Mui-selected': {
+                                            color: '#181513',
+                                            backgroundColor: '#bfa76a',
+                                            borderRadius: '999px',
+                                            boxShadow: '0 8px 20px rgba(191,167,106,0.12)',
+                                            transform: 'translateY(-2px)',
+                                            '&:hover': { backgroundColor: '#d6c491' },
+                                            transition: 'transform 220ms cubic-bezier(.2,.8,.2,1), background-color 220ms cubic-bezier(.2,.8,.2,1), color 220ms ease, box-shadow 220ms ease',
+                                        },
+                                        '& .MuiTabs-indicator': { display: 'none' },
+                                    }}
+                                    TabIndicatorProps={{ style: { display: 'none' } }}
+                                >
+                                    <Tab value="todo" label={`To Do (${counts.todo})`} />
+                                    <Tab value="in_progress" label={`In Progress (${counts.in_progress})`} />
+                                    <Tab value="done" label={`Done (${counts.done})`} />
+                                </Tabs>
                             );
-                        })}
+                        })()}
                     </Box>
-                ) : (
-                    <Box
-                        sx={{
-                            position: 'relative',
-                            textAlign: 'center',
-                            py: 6,
-                            px: 3,
-                            backgroundColor: '#161414',
-                            borderRadius: '12px',
-                            border: '2px dashed rgba(191,167,106,0.12)',
-                        }}
-                    >
-                        {/* back button removed from empty-state card - kept only in modal */}
-                        <FolderIcon sx={{ fontSize: '3rem', color: '#bfa76a', mb: 2 }} />
-                        <Typography variant="h6" sx={{ color: '#DEB887', mb: 1.5, fontWeight: 600 }}>
-                            No projects yet
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#BDB76B', mb: 3 }}>
-                            Create your first project to get started organizing your work
-                        </Typography>
+
+                    {/* When there are no projects show the large empty-state card below the tabs */}
+                    {(projectsList?.length ?? 0) === 0 && (
+                        <Box sx={{ position: 'relative', textAlign: 'center', py: 6, px: 3, backgroundColor: '#161414', borderRadius: '12px', border: '2px dashed rgba(191,167,106,0.12)' }}>
+                            <FolderIcon sx={{ fontSize: '3rem', color: '#bfa76a', mb: 2 }} />
+                            <Typography variant="h6" sx={{ color: '#DEB887', mb: 1.5, fontWeight: 600 }}>
+                                No projects yet
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#BDB76B', mb: 3 }}>
+                                Create your first project to get started organizing your work
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={() => { setFormOpen(true); setEditing(null); setTitle(''); setDescription(''); setPriority('medium'); setStatus('todo'); }}
+                                sx={{
+                                    background: 'linear-gradient(135deg, #bfa76a 0%, #d6c491 100%)',
+                                    color: '#181513',
+                                    fontWeight: 600,
+                                    '&:hover': {
+                                        background: '#d6c491',
+                                        transform: 'translateY(-2px)',
+                                    },
+                                }}
+                            >
+                                Create First Project
+                            </Button>
+                        </Box>
+                    )}
+
+                    {(projectsList?.length ?? 0) > 0 && (
+                        <Box sx={{ mt: 2 }}>
+                            <TableContainer component={Paper} sx={{ background: '#161414', borderRadius: 2, boxShadow: 6, transition: 'opacity 160ms ease, transform 160ms ease', opacity: contentVisible ? 1 : 0, transform: contentVisible ? 'translateY(0)' : 'translateY(6px)' }}>
+                                <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Title</TableCell>
+                                    <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Description</TableCell>
+                                    <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Priority</TableCell>
+                                    <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {(() => {
+                                    const byStatus = {
+                                        todo: projectsList.filter(p => (p.status || 'todo') === 'todo'),
+                                        in_progress: projectsList.filter(p => (p.status || 'todo') === 'in_progress'),
+                                        done: projectsList.filter(p => (p.status || 'todo') === 'done'),
+                                    };
+                                    const current = byStatus[activeTab] || [];
+                                    const pageCount = Math.max(1, Math.ceil(current.length / projectsPerPage));
+                                    const start = (page - 1) * projectsPerPage;
+                                    const visible = current.slice(start, start + projectsPerPage);
+                                    return visible.map((p) => (
+                                    <TableRow key={p.id} hover sx={{ '&:hover': { background: 'rgba(255,255,255,0.02)' } }}>
+                                        <TableCell sx={{ color: '#FFFFFF', fontWeight: 700 }}>{p.title}</TableCell>
+                                        <TableCell sx={{ color: '#d6c491', fontSize: '0.95rem', maxWidth: 300 }}>{p.description || 'No description'}</TableCell>
+                                        <TableCell>
+                                            {(() => {
+                                                const pr = p.priority || 'medium';
+                                                const color = pr === 'high' ? '#d9534f' : pr === 'low' ? '#5cb85c' : '#e1c542';
+                                                const label = pr.charAt(0).toUpperCase() + pr.slice(1);
+                                                return (
+                                                    <Box component="span" sx={{ display: 'inline-flex' }}>
+                                                        <Box sx={{ backgroundColor: color, color: '#fff', fontWeight: 700, fontSize: '0.75rem', px: 1, py: '2px', borderRadius: '8px' }}>{label}</Box>
+                                                    </Box>
+                                                );
+                                            })()}
+                                        </TableCell>
+                                        <TableCell>
+                                            {p.status === 'done' ? (
+                                                <IconButton size="small" onClick={() => router.put(route('projects.markUndo', p.id))} sx={{ color: '#DEB887', mr: 1 }}><UndoIcon fontSize="small" /></IconButton>
+                                            ) : (
+                                                <IconButton size="small" onClick={() => router.put(route('projects.markDone', p.id))} sx={{ color: '#5cb85c', mr: 1 }}><DoneIcon fontSize="small" /></IconButton>
+                                            )}
+                                            <IconButton size="small" onClick={() => startEdit(p)} sx={{ color: '#DEB887', mr: 1 }}><EditIcon fontSize="small" /></IconButton>
+                                            <IconButton size="small" onClick={() => { setDeleteTarget(p); setDeleteOpen(true); }} sx={{ color: '#FF6B6B' }}><DeleteIcon fontSize="small" /></IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                    ));
+                                })()}
+                            </TableBody>
+                        </Table>
+                                </TableContainer>
+                        </Box>
+                    )}
+
+                    {/* Pagination for columns */}
+                    {(projectsList?.length ?? 0) > 0 && (() => {
+                        const count = projectsList.filter(p => (p.status || 'todo') === activeTab).length;
+                        const pageCount = Math.ceil(count / projectsPerPage);
+                        if (pageCount <= 1) return null;
+                        return (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                <Pagination
+                                    count={pageCount}
+                                    page={page}
+                                    onChange={(_, val) => setPage(val)}
+                                    shape="rounded"
+                                    sx={{
+                                        '& .MuiPaginationItem-root': { color: '#a88734', fontWeight: 800 },
+                                        '& .MuiPaginationItem-root.Mui-selected': { backgroundColor: '#bfa76a', color: '#181513' },
+                                        '& .MuiPaginationItem-root:hover': { backgroundColor: 'rgba(168,135,52,0.08)', color: '#a88734' },
+                                    }}
+                                />
+                            </Box>
+                        );
+                    })()}
+                    
+                </Box>
+
+                {/* Floating Action Button for New Project (only show when at least one project exists) */}
+                {!formOpen && (projectsList?.length ?? 0) > 0 && (
+                    <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1200 }}>
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={() => setFormOpen(true)}
+                            onClick={() => {
+                                setFormOpen(true);
+                                setEditing(null);
+                                setTitle('');
+                                setDescription('');
+                                setPriority('medium');
+                                setStatus('todo');
+                            }}
                             sx={{
-                                background: 'linear-gradient(135deg, #bfa76a 0%, #d6c491 100%)',
+                                background: '#bfa76a',
                                 color: '#181513',
                                 fontWeight: 600,
+                                borderRadius: '50px',
+                                minWidth: 140,
+                                maxWidth: 160,
+                                padding: '10px 18px',
+                                boxShadow: '0 8px 24px rgba(191,167,106,0.13)',
                                 '&:hover': {
                                     background: '#d6c491',
                                     transform: 'translateY(-2px)',
+                                    boxShadow: '0 12px 32px rgba(191,167,106,0.18)',
                                 },
                             }}
                         >
-                            Create First Project
+                            New Project
                         </Button>
                     </Box>
                 )}
-            </Box>
 
-            {/* Floating Action Button for New Project */}
-            {!formOpen && (
-                <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1200 }}>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => {
-                            setFormOpen(true);
-                            setEditing(null);
-                            setTitle('');
-                            setDescription('');
-                        }}
-                        sx={{
-                            background: '#bfa76a',
-                            color: '#181513',
-                            fontWeight: 600,
-                            borderRadius: '50px',
-                            minWidth: 140,
-                            maxWidth: 160,
-                            padding: '10px 18px',
-                            boxShadow: '0 8px 24px rgba(191,167,106,0.13)',
-                            '&:hover': {
-                                background: '#d6c491',
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 12px 32px rgba(191,167,106,0.18)',
-                            },
-                        }}
-                    >
-                        New Project
-                    </Button>
-                </Box>
-            )}
-            {/* Delete confirmation modal */}
-            <Dialog
-                open={deleteOpen}
-                onClose={() => { setDeleteOpen(false); setDeleteTarget(null); }}
-                maxWidth="xs"
-                fullWidth
-                PaperProps={{ sx: { background: 'transparent', boxShadow: 'none' } }}
-            >
-                <DialogContent sx={{ p: 0 }}>
-                    <Box sx={{ mx: 2, my: 2, borderRadius: 2, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.6)' }}>
-                        <Box sx={{ height: 8, background: 'linear-gradient(90deg, rgba(191,167,106,1) 0%, rgba(214,196,145,0.6) 100%)' }} />
-                        <Box sx={{ backgroundColor: '#161414', p: 3 }}>
-                            
-                            <DialogContentText sx={{ color: '#DEB887', textAlign: 'center', mb: 2 }}>
-                                Are you sure you want to permanently delete "{deleteTarget?.title || 'this project'}"? This action cannot be undone.
-                            </DialogContentText>
-                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-                                <Button onClick={() => { setDeleteOpen(false); setDeleteTarget(null); }} sx={{ color: '#DEB887' }}>Cancel</Button>
-                                <Button onClick={confirmDelete} variant="contained" sx={{ background: '#bfa76a', color: '#181513', fontWeight: 800, borderRadius: 28, boxShadow: '0 12px 36px rgba(191,167,106,0.22)', '&:hover': { background: '#d6c491', boxShadow: '0 18px 48px rgba(191,167,106,0.28)' }, minWidth: 110, py: 1 }}>Delete</Button>
+                {/* Delete confirmation modal */}
+                <Dialog
+                    open={deleteOpen}
+                    onClose={() => { setDeleteOpen(false); setDeleteTarget(null); }}
+                    maxWidth="xs"
+                    fullWidth
+                    PaperProps={{ sx: { background: 'transparent', boxShadow: 'none' } }}
+                >
+                    <DialogContent sx={{ p: 0 }}>
+                        <Box sx={{ mx: 2, my: 2, borderRadius: 2, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.6)' }}>
+                            <Box sx={{ height: 8, background: 'linear-gradient(90deg, rgba(191,167,106,1) 0%, rgba(214,196,145,0.6) 100%)' }} />
+                            <Box sx={{ backgroundColor: '#161414', p: 3 }}>
+
+                                <DialogContentText sx={{ color: '#DEB887', textAlign: 'center', mb: 2 }}>
+                                    Are you sure you want to permanently delete "{deleteTarget?.title || 'this project'}"? This action cannot be undone.
+                                </DialogContentText>
+                                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                                    <Button onClick={() => { setDeleteOpen(false); setDeleteTarget(null); }} sx={{ color: '#DEB887' }}>Cancel</Button>
+                                    <Button onClick={confirmDelete} variant="contained" sx={{ background: '#bfa76a', color: '#181513', fontWeight: 800, borderRadius: 28, boxShadow: '0 12px 36px rgba(191,167,106,0.22)', '&:hover': { background: '#d6c491', boxShadow: '0 18px 48px rgba(191,167,106,0.28)' }, minWidth: 110, py: 1 }}>Delete</Button>
+                                </Box>
                             </Box>
                         </Box>
-                    </Box>
-                </DialogContent>
-            </Dialog>
-            {/* Task detail dialog removed per user request (Open buttons removed) */}
+                    </DialogContent>
+                </Dialog>
+            </Box>
         </AuthenticatedLayout>
     );
 }
