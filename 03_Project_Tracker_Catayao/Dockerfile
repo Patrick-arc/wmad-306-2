@@ -1,35 +1,52 @@
 FROM php:8.3-apache
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
     curl \
-    libpng-dev \
+    dos2unix \
+    git \ 
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
     libonig-dev \
+    libpng-dev \
+    libwebp-dev \
     libxml2-dev \
-    libzip-dev \
-    zip \
-    default-mysql-client \
-    nodejs \
+    mariadb-client \
     npm \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+    unzip \
+    zip \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure and install PHP extensions required by Laravel
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp
+
+RUN docker-php-ext-install \
+    bcmath \
+    ctype \
+    exif \
+    gd \
+    mbstring \
+    pdo \
+    pdo_mysql \
+    pcntl \
+    sockets
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer/composer:latest-bin /composer /usr/bin/composer
 
-# Enable Apache rewrite
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
+COPY ./_setup/web_scripts/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Set Laravel public folder
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+# Install NVM and Node.js LTS
+ENV NVM_VERSION=master
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash
+RUN nvm install --lts | bash
+RUN nvm use --lts | bash
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/000-default.conf \
-    /etc/apache2/apache2.conf
-
+# Set working directory
 WORKDIR /var/www/html
-
-EXPOSE 80 5173
-
-CMD ["apache2-foreground"]
