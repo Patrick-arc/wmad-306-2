@@ -19,28 +19,8 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        // ...existing fillable fields...
     ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the projects for the user.
-     */
-    public function projects(): HasMany
-    {
-        return $this->hasMany(Project::class);
-    }
 
     /**
      * Get the attributes that should be cast.
@@ -54,4 +34,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function projects()
+{
+    return $this->hasMany(Project::class);
+}
 }
