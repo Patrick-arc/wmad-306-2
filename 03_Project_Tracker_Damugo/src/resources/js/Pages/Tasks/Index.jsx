@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Pagination from '@mui/material/Pagination';
 import { Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Head, usePage, router } from '@inertiajs/react';
@@ -28,6 +28,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DoneIcon from '@mui/icons-material/Done';
+import UndoIcon from '@mui/icons-material/Undo';
 import TaskIcon from '@mui/icons-material/Task';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
@@ -72,6 +74,7 @@ export default function Index() {
     const [column, setColumn] = useState('todo');
     const [page, setPage] = useState(1);
     const tasksPerPage = 5;
+    const [contentVisible, setContentVisible] = useState(true);
     // Approx row height in px (used to reserve table space to avoid layout shift)
     const approxRowHeight = 86;
 
@@ -242,71 +245,7 @@ export default function Index() {
                     </DialogTitle>
                     <DialogContent dividers sx={{ backgroundColor: '#161414' }}>
                         <Box component="form" onSubmit={submit} sx={{ display: 'grid', gap: 2.5, mt: 1 }}>
-                            <FormControl fullWidth required>
-                                <InputLabel sx={{ color: '#DEB887' }}>Project</InputLabel>
-                                <Select
-                                    label="Project"
-                                    value={form.project_id}
-                                    onChange={(e) => setForm((s) => ({ ...s, project_id: e.target.value }))}
-                                    sx={{
-                                        backgroundColor: 'rgba(212, 175, 123, 0.05)',
-                                        color: '#F5DEB3',
-                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(212, 175, 123, 0.3)' },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(212, 175, 123, 0.5)' },
-                                        '& .MuiSvgIcon-root': { color: '#DEB887' },
-                                    }}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            sx: {
-                                                backgroundColor: '#161414',
-                                                color: '#F5DEB3',
-                                                border: '1px solid rgba(191,167,106,0.12)',
-                                                '& .MuiMenuItem-root': {
-                                                    backgroundColor: 'transparent',
-                                                    color: '#F5DEB3',
-                                                },
-                                                '& .MuiMenuItem-root.Mui-selected': {
-                                                    backgroundColor: 'rgba(191,167,106,0.22) !important',
-                                                    color: '#181513 !important',
-                                                },
-                                                '& .MuiMenuItem-root.Mui-selected *': {
-                                                    color: '#181513 !important',
-                                                },
-                                                '& .MuiMenuItem-root:hover': {
-                                                    backgroundColor: 'rgba(191,167,106,0.12) !important',
-                                                },
-                                            },
-                                        },
-                                    }}
-                                >
-                                    <MenuItem
-                                        value=""
-                                        sx={{
-                                            backgroundColor: 'transparent',
-                                            color: '#F5DEB3',
-                                            '&.Mui-selected': { backgroundColor: 'rgba(191,167,106,0.12)', color: '#181513' },
-                                            '&:hover': { backgroundColor: 'rgba(191,167,106,0.08)' },
-                                        }}
-                                    >
-                                        Select a project
-                                    </MenuItem>
-                                    {projects?.map((p) => (
-                                        <MenuItem
-                                            key={p.id}
-                                            value={p.id}
-                                            sx={{
-                                                backgroundColor: 'transparent',
-                                                color: '#F5DEB3',
-                                                '&.Mui-selected': { backgroundColor: 'rgba(191,167,106,0.22) !important', color: '#181513 !important' },
-                                                '&.Mui-selected *': { color: '#181513 !important' },
-                                                '&:hover': { backgroundColor: 'rgba(191,167,106,0.12) !important' },
-                                            }}
-                                        >
-                                            {p.title}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                            {/* Project selection removed — tasks are standalone or can be attached later */}
                             <TextField
                                 fullWidth
                                 label="Task Title"
@@ -449,12 +388,17 @@ export default function Index() {
                 </Dialog>
 
                 {/* Column Filter Tabs */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, mb: 2 }}>
                     <Tabs
                             value={column}
                             onChange={(_, val) => {
-                                setColumn(val);
-                                setPage(1);
+                                // animate content out, switch column, then animate in
+                                setContentVisible(false);
+                                setTimeout(() => {
+                                    setColumn(val);
+                                    setPage(1);
+                                    setContentVisible(true);
+                                }, 220);
                             }}
                             sx={{
                                 '& .MuiTabs-flexContainer': { gap: 1 },
@@ -464,6 +408,7 @@ export default function Index() {
                                     fontWeight: 800,
                                     minHeight: 40,
                                     px: 1.5,
+                                    transition: 'transform 220ms cubic-bezier(.2,.8,.2,1), background-color 220ms cubic-bezier(.2,.8,.2,1), color 220ms ease, box-shadow 220ms ease',
                                 },
                                 '& .MuiTab-root.Mui-selected': {
                                     color: '#181513',
@@ -472,6 +417,7 @@ export default function Index() {
                                     boxShadow: '0 8px 20px rgba(191,167,106,0.12)',
                                     transform: 'translateY(-2px)',
                                     '&:hover': { backgroundColor: '#d6c491' },
+                                    transition: 'transform 220ms cubic-bezier(.2,.8,.2,1), background-color 220ms cubic-bezier(.2,.8,.2,1), color 220ms ease, box-shadow 220ms ease',
                                 },
                                 '& .MuiTabs-indicator': { display: 'none' },
                              }}
@@ -484,21 +430,20 @@ export default function Index() {
                 </Box>
                 {tasks?.length > 0 ? (
                     <>
-                        {/* Table always rendered, only rows change */}
-                        <TableContainer component={Paper} sx={{
-                            background: '#161414',
-                            borderRadius: 2,
-                            boxShadow: 6,
-                            mt: 2,
-                            // Reserve vertical space so pagination changes don't collapse the area.
-                            minHeight: `${tasksPerPage * approxRowHeight}px`,
-                            transition: 'min-height 180ms ease',
-                        }}>
+                        {/* Table always rendered, only rows change. Animate visibility on tab switch */}
+                        <Box sx={{ mt: 2, minHeight: `${tasksPerPage * approxRowHeight}px` }}>
+                            <TableContainer component={Paper} sx={{
+                                background: '#161414',
+                                borderRadius: 2,
+                                boxShadow: 6,
+                                transition: 'opacity 220ms cubic-bezier(.2,.8,.2,1), transform 220ms cubic-bezier(.2,.8,.2,1)',
+                                opacity: contentVisible ? 1 : 0,
+                                transform: contentVisible ? 'translateY(0)' : 'translateY(6px)'
+                            }}>
                             <Table>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Title</TableCell>
-                                        <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Project</TableCell>
                                         <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Description</TableCell>
                                         <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Priority</TableCell>
                                         <TableCell sx={{ color: '#a88734', fontWeight: 700 }}>Actions</TableCell>
@@ -508,7 +453,6 @@ export default function Index() {
                                     {displayedTasks.map((task) => (
                                         <TableRow key={task.id} hover sx={{ '&:hover': { background: 'rgba(255,255,255,0.02)' } }}>
                                             <TableCell sx={{ color: '#FFFFFF', fontWeight: 700 }}>{task.title}</TableCell>
-                                            <TableCell sx={{ color: '#DEB887', fontSize: '0.95rem' }}>{projects?.find((p) => p.id === task.project_id)?.title || 'Unknown Project'}</TableCell>
                                             <TableCell sx={{ color: '#d6c491', fontSize: '0.95rem', maxWidth: 220, pr: 1 }}>
                                                 <Box sx={{
                                                     whiteSpace: 'pre-wrap',
@@ -543,6 +487,36 @@ export default function Index() {
                                                 />
                                             </TableCell>
                                             <TableCell>
+                                                {task.status === 'done' ? (
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => router.put(route('tasks.markUndo', task.id))}
+                                                        sx={{
+                                                            color: '#DEB887',
+                                                            backgroundColor: 'rgba(212,175,123,0.06)',
+                                                            mr: 1,
+                                                            transition: 'transform 140ms ease',
+                                                            '&:hover': { transform: 'translateY(-2px) scale(1.04)', backgroundColor: 'rgba(212,175,123,0.12)' },
+                                                        }}
+                                                    >
+                                                        <UndoIcon fontSize="small" />
+                                                    </IconButton>
+                                                ) : (
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => router.put(route('tasks.markDone', task.id))}
+                                                        sx={{
+                                                            color: '#5cb85c',
+                                                            backgroundColor: 'rgba(92,184,92,0.06)',
+                                                            mr: 1,
+                                                            transition: 'transform 140ms ease, box-shadow 160ms ease, background-color 120ms ease',
+                                                            '&:hover': { transform: 'translateY(-2px) scale(1.04)', backgroundColor: 'rgba(92,184,92,0.14)', boxShadow: '0 8px 20px rgba(92,184,92,0.06)' },
+                                                            '&:active': { transform: 'translateY(0) scale(0.995)' },
+                                                        }}
+                                                    >
+                                                        <DoneIcon fontSize="small" />
+                                                    </IconButton>
+                                                )}
                                                 <IconButton
                                                     size="small"
                                                     onClick={() => startEdit(task)}
@@ -576,12 +550,13 @@ export default function Index() {
                                     {/* Render empty placeholder rows so the table always shows tasksPerPage rows */}
                                     {Array.from({ length: Math.max(0, tasksPerPage - displayedTasks.length) }).map((_, i) => (
                                         <TableRow key={`empty-${i}`} sx={{ background: '#232323', height: `${approxRowHeight}px` }}>
-                                            <TableCell colSpan={5} sx={{ height: `${approxRowHeight}px`, borderBottom: '1px solid rgba(191,167,106,0.06)' }} />
+                                            <TableCell colSpan={4} sx={{ height: `${approxRowHeight}px`, borderBottom: '1px solid rgba(191,167,106,0.06)' }} />
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
-                        </TableContainer>
+                            </TableContainer>
+                        </Box>
 
                         {/* Pagination Slider */}
                         {pageCount > 1 && (
@@ -643,8 +618,8 @@ export default function Index() {
                 )}
 
             </Box>
-                {/* Global Floating Action Button (shows even when there are no tasks) */}
-                {!formOpen && (
+                {/* Global Floating Action Button (only show when at least one task exists) */}
+                {!formOpen && (tasks?.length ?? 0) > 0 && (
                     <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1200 }}>
                         <Button
                             variant="contained"

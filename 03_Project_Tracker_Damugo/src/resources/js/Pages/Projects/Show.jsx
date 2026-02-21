@@ -20,7 +20,12 @@ export default function Show({ project }) {
                     <CardContent>
                         <Typography variant="body1" sx={{ color: '#F5DEB3', mb: 2 }}>{project.description || 'No description provided.'}</Typography>
 
-                        <Chip icon={<TaskIcon sx={{ color: '#bfa76a' }} />} label={`${project.tasks_count || 0} task${(project.tasks_count || 0) !== 1 ? 's' : ''}`} sx={{ backgroundColor: 'rgba(191,167,106,0.13)', color: '#bfa76a', fontWeight: 600 }} />
+                        {(() => {
+                            const pr = project.priority || 'medium';
+                            const color = pr === 'high' ? '#d9534f' : pr === 'low' ? '#5cb85c' : '#e1c542';
+                            const label = pr.charAt(0).toUpperCase() + pr.slice(1);
+                            return <Box component="span" sx={{ display: 'inline-flex' }}><Box sx={{ backgroundColor: color, color: '#fff', fontWeight: 700, fontSize: '0.75rem', px: 1, py: '2px', borderRadius: '8px' }}>{label}</Box></Box>;
+                        })()}
 
                         <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
                             <Link href={route('projects.index')} as="a">
