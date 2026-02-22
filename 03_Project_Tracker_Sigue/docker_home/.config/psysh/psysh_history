@@ -1,0 +1,10 @@
+User::first()
+Project::count()
+Task::count()
+Project::first()->tasks
+\App\Models\Project::count()
+\App\Models\Task::count()
+\App\Models\Project::first()->tasks
+exit
+Schema::getColumnListing('projects');
+exit
