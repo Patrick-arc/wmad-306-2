@@ -275,7 +275,6 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 textAlign: 'center',
                             }}
                         >
-                            @freddevisayaactivity
                         </Typography>
                     </Container>
                 </Box>

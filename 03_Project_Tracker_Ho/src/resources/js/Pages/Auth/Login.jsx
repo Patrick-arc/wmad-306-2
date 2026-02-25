@@ -45,7 +45,7 @@ export default function Login({ status, canResetPassword }) {
                         pointerEvents: 'none',
                         background:
                             'radial-gradient(900px 420px at 12% 10%, rgba(99,102,241,0.18), transparent 55%),' +
-                            'radial-gradient(820px 420px at 88% 18%, rgba(16,185,129,0.14), transparent 55%)',
+                            'radial-gradient(820px 420px at 88% 18%, rgba(19, 165, 116, 0.14), transparent 55%)',
                     }}
                 />
 
@@ -184,7 +184,7 @@ export default function Login({ status, canResetPassword }) {
                         variant="caption"
                         sx={{ color: 'text.secondary', fontSize: 12, textAlign: 'center' }}
                     >
-                        @freddevisayaactivity
+                       
                     </Typography>
                 </Box>
             </Box>
