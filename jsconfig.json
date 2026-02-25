@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "baseUrl": ".",
+        "module": "ESNext",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "moduleResolution": "node",
+        "jsx": "react-jsx",
+        "checkJs": false,
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": ["vite/client", "@mui/material", "@emotion/react", "@emotion/styled"],
+        "paths": {
+            "@/*": ["resources/js/*"],
+            "ziggy-js": ["vendor/tightenco/ziggy"]
+        }
+    },
+    "exclude": ["node_modules", "public", "vendor"]
+}
