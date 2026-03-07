@@ -1,12 +1,8 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Transition } from '@headlessui/react';
+import { Box, Button, Fade, Stack, TextField, Typography } from '@mui/material';
 import { useForm } from '@inertiajs/react';
 import { useRef } from 'react';
 
-export default function UpdatePasswordForm({ className = '' }) {
+export default function UpdatePasswordForm() {
     const passwordInput = useRef();
     const currentPasswordInput = useRef();
 
@@ -45,98 +41,104 @@ export default function UpdatePasswordForm({ className = '' }) {
     };
 
     return (
-        <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
+        <Box component="section">
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                     Update Password
-                </h2>
+                </Typography>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     Ensure your account is using a long, random password to stay
                     secure.
-                </p>
-            </header>
+                </Typography>
+            </Box>
 
-            <form onSubmit={updatePassword} className="mt-6 space-y-6">
-                <div>
-                    <InputLabel
-                        htmlFor="current_password"
-                        value="Current Password"
-                    />
-
-                    <TextInput
+            <Box component="form" onSubmit={updatePassword}>
+                <Stack spacing={2.5} sx={{ maxWidth: 560 }}>
+                    <TextField
                         id="current_password"
-                        ref={currentPasswordInput}
+                        name="current_password"
+                        type="password"
+                        label="Current Password"
+                        fullWidth
+                        inputRef={currentPasswordInput}
                         value={data.current_password}
                         onChange={(e) =>
                             setData('current_password', e.target.value)
                         }
-                        type="password"
-                        className="mt-1 block w-full"
                         autoComplete="current-password"
+                        error={!!errors.current_password}
+                        helperText={errors.current_password}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#FFFFFF',
+                            },
+                        }}
                     />
 
-                    <InputError
-                        message={errors.current_password}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="password" value="New Password" />
-
-                    <TextInput
+                    <TextField
                         id="password"
-                        ref={passwordInput}
+                        name="password"
+                        type="password"
+                        label="New Password"
+                        fullWidth
+                        inputRef={passwordInput}
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
-                        type="password"
-                        className="mt-1 block w-full"
                         autoComplete="new-password"
+                        error={!!errors.password}
+                        helperText={errors.password}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#FFFFFF',
+                            },
+                        }}
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
+                    <TextField
                         id="password_confirmation"
+                        name="password_confirmation"
+                        type="password"
+                        label="Confirm Password"
+                        fullWidth
                         value={data.password_confirmation}
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
                         }
-                        type="password"
-                        className="mt-1 block w-full"
                         autoComplete="new-password"
+                        error={!!errors.password_confirmation}
+                        helperText={errors.password_confirmation}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#FFFFFF',
+                            },
+                        }}
                     />
 
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={processing}
+                            sx={{
+                                px: 3,
+                                py: 1,
+                                fontWeight: 700,
+                                bgcolor: 'primary.main',
+                                '&:hover': { bgcolor: 'primary.dark' },
+                            }}
+                        >
+                            Save
+                        </Button>
 
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
-
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">
+                        <Fade in={recentlySuccessful} timeout={250}>
+                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             Saved.
-                        </p>
-                    </Transition>
-                </div>
-            </form>
-        </section>
+                            </Typography>
+                        </Fade>
+                    </Box>
+                </Stack>
+            </Box>
+        </Box>
     );
 }

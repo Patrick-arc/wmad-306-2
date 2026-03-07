@@ -136,7 +136,7 @@ export default function AuthenticatedLayout({ children }) {
                                 display: { xs: 'none', sm: 'block' },
                             }}
                         >
-                            SAPP
+                            UniVox
                         </Typography>
                     </Link>
 

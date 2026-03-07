@@ -1,14 +1,17 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Transition } from '@headlessui/react';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import {
+    Alert,
+    Box,
+    Button,
+    Fade,
+    Stack,
+    TextField,
+    Typography,
+} from '@mui/material';
+import { Link as InertiaLink, useForm, usePage } from '@inertiajs/react';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
     status,
-    className = '',
 }) {
     const user = usePage().props.auth.user;
 
@@ -25,89 +28,112 @@ export default function UpdateProfileInformation({
     };
 
     return (
-        <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
+        <Box component="section">
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
                     Profile Information
-                </h2>
+                </Typography>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     Update your account's profile information and email address.
-                </p>
-            </header>
+                </Typography>
+            </Box>
 
-            <form onSubmit={submit} className="mt-6 space-y-6">
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
-
-                    <TextInput
+            <Box component="form" onSubmit={submit}>
+                <Stack spacing={2.5} sx={{ maxWidth: 560 }}>
+                    <TextField
                         id="name"
-                        className="mt-1 block w-full"
+                        name="name"
+                        label="Name"
+                        fullWidth
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
+                        error={!!errors.name}
+                        helperText={errors.name}
                         required
-                        isFocused
                         autoComplete="name"
+                        autoFocus
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#FFFFFF',
+                            },
+                        }}
                     />
 
-                    <InputError className="mt-2" message={errors.name} />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
+                    <TextField
                         id="email"
+                        name="email"
                         type="email"
-                        className="mt-1 block w-full"
+                        label="Email"
+                        fullWidth
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
+                        error={!!errors.email}
+                        helperText={errors.email}
                         required
                         autoComplete="username"
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                bgcolor: '#FFFFFF',
+                            },
+                        }}
                     />
 
-                    <InputError className="mt-2" message={errors.email} />
-                </div>
-
                 {mustVerifyEmail && user.email_verified_at === null && (
-                    <div>
-                        <p className="mt-2 text-sm text-gray-800">
+                    <Alert
+                        severity="warning"
+                        sx={{
+                            borderRadius: 2,
+                            bgcolor: '#FFF8E1',
+                        }}
+                    >
+                        <Typography variant="body2" sx={{ mb: 1 }}>
                             Your email address is unverified.
-                            <Link
-                                href={route('verification.send')}
-                                method="post"
-                                as="button"
-                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                            >
-                                Click here to re-send the verification email.
-                            </Link>
-                        </p>
+                        </Typography>
+                        <Button
+                            size="small"
+                            component={InertiaLink}
+                            href={route('verification.send')}
+                            method="post"
+                            as="button"
+                            sx={{ p: 0, minWidth: 0, textTransform: 'none', fontWeight: 700 }}
+                        >
+                            Click here to re-send the verification email.
+                        </Button>
 
                         {status === 'verification-link-sent' && (
-                            <div className="mt-2 text-sm font-medium text-green-600">
+                            <Typography variant="body2" sx={{ mt: 1, fontWeight: 600, color: 'success.main' }}>
                                 A new verification link has been sent to your
                                 email address.
-                            </div>
+                            </Typography>
                         )}
-                    </div>
+                    </Alert>
                 )}
 
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={processing}
+                            sx={{
+                                px: 3,
+                                py: 1,
+                                fontWeight: 700,
+                                bgcolor: 'primary.main',
+                                '&:hover': { bgcolor: 'primary.dark' },
+                            }}
+                        >
+                            Save
+                        </Button>
 
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">
+                        <Fade in={recentlySuccessful} timeout={250}>
+                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             Saved.
-                        </p>
-                    </Transition>
-                </div>
-            </form>
-        </section>
+                            </Typography>
+                        </Fade>
+                    </Box>
+                </Stack>
+            </Box>
+        </Box>
     );
 }

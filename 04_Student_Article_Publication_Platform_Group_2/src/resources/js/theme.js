@@ -3,24 +3,24 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#1B2A4A',
-            light: '#2D4373',
-            dark: '#0F1C33',
+            main: '#255273',
+            light: '#4A7BA7',
+            dark: '#1A3A52',
             contrastText: '#FFFFFF',
         },
         secondary: {
-            main: '#2A7B9B',
-            light: '#3D9BC2',
-            dark: '#1C5A73',
+            main: '#255273',
+            light: '#4A7BA7',
+            dark: '#1A3A52',
             contrastText: '#FFFFFF',
         },
         background: {
-            default: '#F4F6F9',
+            default: '#F5F7F9',
             paper: '#FFFFFF',
         },
         text: {
-            primary: '#1B2A4A',
-            secondary: '#5A6B8A',
+            primary: '#2C3E50',
+            secondary: '#828D99',
         },
         success: {
             main: '#2E7D32',
@@ -42,6 +42,13 @@ const theme = createTheme({
         action: {
             hover: 'rgba(42, 123, 155, 0.06)',
             selected: 'rgba(27, 42, 74, 0.08)',
+        },
+        // Brand accent color for CTAs
+        brand: {
+            main: '#E65100',
+            light: '#FF7043',
+            dark: '#BF3600',
+            contrastText: '#FFFFFF',
         },
     },
     typography: {
