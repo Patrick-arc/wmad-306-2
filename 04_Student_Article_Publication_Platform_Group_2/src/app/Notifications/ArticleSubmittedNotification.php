@@ -18,7 +18,22 @@ class ArticleSubmittedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'article_submitted',
+            'title' => 'New Article Submitted',
+            'message' => sprintf(
+                '%s submitted "%s" for review.',
+                $this->article->writer?->name ?? 'A writer',
+                $this->article->title
+            ),
+            'url' => route('editor.dashboard'),
+            'article_id' => $this->article->id,
+        ];
     }
 
     public function toMail(object $notifiable): MailMessage

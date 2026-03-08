@@ -24,17 +24,23 @@ import {
     LogoutOutlined,
     NotificationsOutlined,
     KeyboardArrowDown,
+    AdminPanelSettings,
+    Create,
+    Edit,
+    School,
     Article as ArticleIcon,
     LocalOfferOutlined,
 } from '@mui/icons-material';
 
 export default function AuthenticatedLayout({ children }) {
-    const { auth } = usePage().props;
+    const { auth, notifications = [], unreadNotificationsCount = 0 } = usePage().props;
     const user = auth.user;
     const roles = auth.roles || [];
 
     const [anchorEl, setAnchorEl] = useState(null);
     const profileOpen = Boolean(anchorEl);
+    const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
+    const notificationsOpen = Boolean(notificationsAnchorEl);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -43,6 +49,8 @@ export default function AuthenticatedLayout({ children }) {
 
     const handleProfileClick = (e) => setAnchorEl(e.currentTarget);
     const handleProfileClose = () => setAnchorEl(null);
+    const handleNotificationsClick = (e) => setNotificationsAnchorEl(e.currentTarget);
+    const handleNotificationsClose = () => setNotificationsAnchorEl(null);
 
     const handleSearchChange = async (e) => {
         const value = e.target.value;
@@ -60,7 +68,9 @@ export default function AuthenticatedLayout({ children }) {
         try {
             // Determine search endpoint based on user role
             let searchEndpoint = '/writer/search'; // default
-            if (roles.includes('editor')) {
+            if (roles.includes('admin')) {
+                searchEndpoint = '/writer/search'; // admin can search like writer
+            } else if (roles.includes('editor')) {
                 searchEndpoint = '/editor/search';
             } else if (roles.includes('student')) {
                 searchEndpoint = '/student/search';
@@ -84,17 +94,76 @@ export default function AuthenticatedLayout({ children }) {
         setShowSearchResults(false);
     };
 
+    const handleNotificationOpen = (notification) => {
+        if (!notification.read_at) {
+            router.put(
+                route('notifications.read', notification.id),
+                {},
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => router.visit(notification.url || route('dashboard')),
+                }
+            );
+            return;
+        }
+
+        router.visit(notification.url || route('dashboard'));
+    };
+
+    const handleMarkAllNotificationsAsRead = () => {
+        router.put(
+            route('notifications.read-all'),
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+            }
+        );
+    };
+
     const getInitials = (name) => {
         if (!name) return '?';
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     };
 
     const getRoleBadge = () => {
-        if (roles.includes('writer')) return 'Writer';
-        if (roles.includes('editor')) return 'Editor';
-        if (roles.includes('student')) return 'Student';
-        return '';
+        if (!Array.isArray(roles) || roles.length === 0) return '';
+
+        return roles
+            .map((role) => role.charAt(0).toUpperCase() + role.slice(1))
+            .join(', ');
     };
+
+    const dashboardConfig = {
+        admin: {
+            label: 'Admin Dashboard',
+            icon: <AdminPanelSettings sx={{ fontSize: 18 }} />,
+            href: route('admin.dashboard'),
+        },
+        writer: {
+            label: 'Writer Dashboard',
+            icon: <Create sx={{ fontSize: 18 }} />,
+            href: route('writer.dashboard'),
+        },
+        editor: {
+            label: 'Editor Dashboard',
+            icon: <Edit sx={{ fontSize: 18 }} />,
+            href: route('editor.dashboard'),
+        },
+        student: {
+            label: 'Student Dashboard',
+            icon: <School sx={{ fontSize: 18 }} />,
+            href: route('student.dashboard'),
+        },
+    };
+
+    const dashboardLinks = roles
+        .filter((role) => dashboardConfig[role])
+        .map((role) => ({
+            role,
+            ...dashboardConfig[role],
+        }));
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -262,12 +331,108 @@ export default function AuthenticatedLayout({ children }) {
 
                     {/* Notifications */}
                     <Tooltip title="Notifications">
-                        <IconButton size="small" sx={{ color: '#5A6B8A' }}>
-                            <Badge variant="dot" color="error">
+                        <IconButton
+                            size="small"
+                            sx={{ color: '#5A6B8A' }}
+                            onClick={handleNotificationsClick}
+                        >
+                            <Badge
+                                color="error"
+                                badgeContent={unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                            >
                                 <NotificationsOutlined sx={{ fontSize: 22 }} />
                             </Badge>
                         </IconButton>
                     </Tooltip>
+
+                    <Menu
+                        anchorEl={notificationsAnchorEl}
+                        open={notificationsOpen}
+                        onClose={handleNotificationsClose}
+                        slotProps={{
+                            paper: {
+                                sx: {
+                                    mt: 1,
+                                    width: 360,
+                                    maxWidth: '95vw',
+                                    borderRadius: 2,
+                                    boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                },
+                            },
+                        }}
+                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    >
+                        <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography sx={{ fontSize: '0.95rem', fontWeight: 700 }}>
+                                Notifications
+                            </Typography>
+                            {unreadNotificationsCount > 0 && (
+                                <Typography
+                                    onClick={handleMarkAllNotificationsAsRead}
+                                    sx={{
+                                        fontSize: '0.75rem',
+                                        color: 'secondary.main',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    Mark all as read
+                                </Typography>
+                            )}
+                        </Box>
+                        <Divider />
+                        {notifications.length === 0 ? (
+                            <Box sx={{ px: 2, py: 3, textAlign: 'center' }}>
+                                <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+                                    No notifications yet.
+                                </Typography>
+                            </Box>
+                        ) : (
+                            notifications.map((notification) => (
+                                <MenuItem
+                                    key={notification.id}
+                                    onClick={() => {
+                                        handleNotificationsClose();
+                                        handleNotificationOpen(notification);
+                                    }}
+                                    sx={{
+                                        alignItems: 'flex-start',
+                                        whiteSpace: 'normal',
+                                        py: 1.25,
+                                        px: 2,
+                                        bgcolor: notification.read_at ? 'transparent' : 'rgba(42,123,155,0.08)',
+                                    }}
+                                >
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, mb: 0.25 }}>
+                                            {notification.title}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', mb: 0.5 }}>
+                                            {notification.message}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '0.7rem', color: '#8896AB' }}>
+                                            {new Date(notification.created_at).toLocaleString()}
+                                        </Typography>
+                                    </Box>
+                                    {!notification.read_at && (
+                                        <Box
+                                            sx={{
+                                                width: 8,
+                                                height: 8,
+                                                borderRadius: '50%',
+                                                bgcolor: 'secondary.main',
+                                                mt: 1,
+                                                ml: 1,
+                                            }}
+                                        />
+                                    )}
+                                </MenuItem>
+                            ))
+                        )}
+                    </Menu>
 
                     {/* Profile Dropdown */}
                     <Box
@@ -339,6 +504,30 @@ export default function AuthenticatedLayout({ children }) {
                             <ListItemIcon><PersonOutline sx={{ fontSize: 20 }} /></ListItemIcon>
                             <ListItemText primaryTypographyProps={{ fontSize: '0.875rem' }}>Profile</ListItemText>
                         </MenuItem>
+                        {dashboardLinks.length > 1 && (
+                            <>
+                                <Divider />
+                                <Box sx={{ px: 2, py: 1 }}>
+                                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', fontWeight: 600 }}>
+                                        Switch Dashboard
+                                    </Typography>
+                                </Box>
+                                {dashboardLinks.map((item) => (
+                                    <MenuItem
+                                        key={item.role}
+                                        onClick={() => router.visit(item.href)}
+                                        sx={{ py: 1, px: 2, fontSize: '0.875rem' }}
+                                    >
+                                        <ListItemIcon>
+                                            {item.icon}
+                                        </ListItemIcon>
+                                        <ListItemText primaryTypographyProps={{ fontSize: '0.875rem' }}>
+                                            {item.label}
+                                        </ListItemText>
+                                    </MenuItem>
+                                ))}
+                            </>
+                        )}
                         <Divider />
                         <MenuItem
                             onClick={() => router.post(route('logout'))}

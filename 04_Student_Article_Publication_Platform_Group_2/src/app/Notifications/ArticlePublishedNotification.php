@@ -18,7 +18,18 @@ class ArticlePublishedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'article_published',
+            'title' => 'Article Published',
+            'message' => sprintf('Your article "%s" has been published.', $this->article->title),
+            'url' => route('writer.dashboard'),
+            'article_id' => $this->article->id,
+        ];
     }
 
     public function toMail(object $notifiable): MailMessage

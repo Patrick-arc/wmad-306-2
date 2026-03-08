@@ -1,12 +1,17 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EditorController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\WriterController;
+use App\Models\Article;
+use App\Models\ArticleStatus;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -18,23 +23,84 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/articles', function () {
+    $publishedStatusId = ArticleStatus::where('name', 'published')->value('id');
+
+    $articles = Article::with([
+        'writer:id,name',
+        'category:id,name',
+    ])
+        ->withCount('comments')
+        ->where('status_id', $publishedStatusId)
+        ->latest()
+        ->paginate(9)
+        ->through(function ($article) {
+            return [
+                'id' => $article->id,
+                'title' => $article->title,
+                'excerpt' => Str::limit(strip_tags($article->content), 220),
+                'writer' => $article->writer?->name,
+                'category' => $article->category?->name,
+                'comments_count' => $article->comments_count,
+                'published_at' => $article->updated_at,
+            ];
+        });
+
+    return Inertia::render('Public/Articles', [
+        'articles' => $articles,
+    ]);
+})->name('public.articles.index');
+
 // Redirect /dashboard to the proper role-based dashboard
 Route::get('/dashboard', function () {
     $user = Auth::user();
-    if ($user->hasRole('writer')) {
-        return redirect()->route('writer.dashboard');
-    } elseif ($user->hasRole('editor')) {
-        return redirect()->route('editor.dashboard');
-    } elseif ($user->hasRole('student')) {
-        return redirect()->route('student.dashboard');
+
+    if ($user->hasRole('admin')) {
+        return redirect()->route('admin.dashboard');
     }
-    return Inertia::render('Dashboard');
+
+    $roleRoutes = [
+        'writer' => 'writer.dashboard',
+        'editor' => 'editor.dashboard',
+        'student' => 'student.dashboard',
+    ];
+
+    $userRoles = $user->getRoleNames()->toArray();
+    $availableDashboards = [];
+
+    foreach ($roleRoutes as $role => $routeName) {
+        if (in_array($role, $userRoles, true)) {
+            $availableDashboards[] = [
+                'role' => $role,
+                'route' => route($routeName),
+            ];
+        }
+    }
+
+    if (count($availableDashboards) === 1) {
+        return redirect()->to($availableDashboards[0]['route']);
+    }
+
+    return Inertia::render('Dashboard', [
+        'availableDashboards' => $availableDashboards,
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.read-all');
+    Route::put('/notifications/{notificationId}/read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
+});
+
+// Admin routes
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::put('/users/{user}/roles', [AdminController::class, 'updateRoles'])->name('admin.users.update-roles');
 });
 
 // Writer routes

@@ -19,7 +19,23 @@ class CommentPostedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'comment_posted',
+            'title' => 'New Comment Received',
+            'message' => sprintf(
+                '%s commented on "%s".',
+                $this->comment->student?->name ?? 'A student',
+                $this->article->title
+            ),
+            'url' => route('writer.dashboard'),
+            'article_id' => $this->article->id,
+            'comment_id' => $this->comment->id,
+        ];
     }
 
     public function toMail(object $notifiable): MailMessage

@@ -32,6 +32,13 @@ export default function Edit({ article, categories }) {
         readonly: false,
         height: 400,
         placeholder: 'Start writing your article...',
+        enableDragAndDropFileToEditor: true,
+        askBeforePasteHTML: false,
+        askBeforePasteFromWord: false,
+        defaultActionOnPaste: 'insert_as_html',
+        uploader: {
+            insertImageAsBase64URI: true,
+        },
     }), []);
 
     const handleUpdate = (e) => {

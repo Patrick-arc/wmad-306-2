@@ -22,7 +22,12 @@ class StudentController extends Controller
     {
         $publishedStatus = ArticleStatus::where('name', 'published')->first();
 
-        $articles = Article::with(['writer', 'category', 'comments.student'])
+        $articles = Article::with([
+            'writer',
+            'category',
+            'comments' => fn ($query) => $query->latest(),
+            'comments.student',
+        ])
             ->where('status_id', $publishedStatus?->id)
             ->latest()
             ->get();
@@ -45,7 +50,12 @@ class StudentController extends Controller
     {
         $this->authorize('view', $article);
 
-        $article->load(['writer', 'category', 'comments.student']);
+        $article->load([
+            'writer',
+            'category',
+            'comments' => fn ($query) => $query->latest(),
+            'comments.student',
+        ]);
 
         return Inertia::render('Student/Show', [
             'article' => $article,

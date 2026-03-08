@@ -25,7 +25,7 @@ import {
     Comment as CommentIcon,
     Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const drawerWidth = 240;
 
@@ -34,6 +34,14 @@ export default function Dashboard({ articles, myComments }) {
     const [view, setView] = useState('articles');
     const [selectedArticle, setSelectedArticle] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '' });
+    const [visibleComments, setVisibleComments] = useState(10);
+
+    const selectedArticleComments = selectedArticle?.comments || [];
+    const displayedComments = useMemo(
+        () => selectedArticleComments.slice(0, visibleComments),
+        [selectedArticleComments, visibleComments]
+    );
+    const hasMoreComments = selectedArticleComments.length > visibleComments;
 
     const commentForm = useForm({
         content: '',
@@ -47,6 +55,15 @@ export default function Dashboard({ articles, myComments }) {
                 setSnackbar({ open: true, message: 'Comment posted!' });
             },
         });
+    };
+
+    const getPreviewText = (html = '') => {
+        return html
+            .replace(/<img[^>]*>/gi, ' ')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
     };
 
     return (
@@ -106,20 +123,25 @@ export default function Dashboard({ articles, myComments }) {
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
+                                                        minHeight: 72,
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
                                                         display: '-webkit-box',
                                                         WebkitLineClamp: 3,
                                                         WebkitBoxOrient: 'vertical',
                                                     }}
-                                                    dangerouslySetInnerHTML={{ __html: article.content }}
-                                                />
+                                                >
+                                                    {getPreviewText(article.content)}
+                                                </Typography>
                                             </CardContent>
                                             <CardActions>
                                                 <Button
                                                     size="small"
                                                     startIcon={<ViewIcon />}
-                                                    onClick={() => setSelectedArticle(article)}
+                                                    onClick={() => {
+                                                        setSelectedArticle(article);
+                                                        setVisibleComments(10);
+                                                    }}
                                                 >
                                                     Read More
                                                 </Button>
@@ -163,7 +185,7 @@ export default function Dashboard({ articles, myComments }) {
                                         Comments ({selectedArticle.comments?.length || 0})
                                     </Typography>
 
-                                    {selectedArticle.comments?.map((comment) => (
+                                    {displayedComments.map((comment) => (
                                         <Box key={comment.id} sx={{ display: 'flex', gap: 2, mb: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
                                             <Avatar sx={{ width: 32, height: 32, fontSize: 14 }}>
                                                 {comment.student?.name?.[0]}
@@ -177,6 +199,17 @@ export default function Dashboard({ articles, myComments }) {
                                             </Box>
                                         </Box>
                                     ))}
+
+                                    {hasMoreComments && (
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={() => setVisibleComments((count) => count + 10)}
+                                            sx={{ mb: 2 }}
+                                        >
+                                            Load 10 more comments
+                                        </Button>
+                                    )}
 
                                     {/* Comment Form */}
                                     <Box component="form" onSubmit={handleComment} sx={{ mt: 2 }}>

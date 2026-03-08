@@ -7,6 +7,7 @@ import {
     Button,
     Card,
     CardContent,
+    Avatar,
     Chip,
     Alert,
     List,
@@ -42,6 +43,7 @@ import {
     TrackChangesOutlined,
     SaveOutlined,
     VisibilityOutlined,
+    ChatBubbleOutline,
 } from '@mui/icons-material';
 import JoditEditor from 'jodit-react';
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
@@ -98,11 +100,16 @@ export default function Dashboard({ articles, categories }) {
         placeholder: 'Start writing your article content here...',
         toolbarAdaptive: false,
         toolbarSticky: false,
+        enableDragAndDropFileToEditor: true,
         showCharsCounter: false,
         showWordsCounter: false,
         showXPathInStatusbar: false,
         askBeforePasteHTML: false,
         askBeforePasteFromWord: false,
+        defaultActionOnPaste: 'insert_as_html',
+        uploader: {
+            insertImageAsBase64URI: true,
+        },
         buttons: [
             'bold', 'italic', 'underline', 'strikethrough', '|',
             'ul', 'ol', '|',
@@ -301,6 +308,15 @@ export default function Dashboard({ articles, categories }) {
                                     variant="outlined"
                                     sx={{ height: 22, fontSize: '0.7rem', borderColor: '#E2E8F0', color: '#5A6B8A' }}
                                 />
+                                {article.status?.name === 'published' && (
+                                    <Chip
+                                        label={`${article.comments_count || 0} comments`}
+                                        size="small"
+                                        variant="outlined"
+                                        icon={<ChatBubbleOutline sx={{ fontSize: 14 }} />}
+                                        sx={{ height: 22, fontSize: '0.7rem', borderColor: '#E2E8F0', color: '#5A6B8A' }}
+                                    />
+                                )}
                                 <Typography variant="caption" sx={{ color: '#8896AB' }}>
                                     Updated {new Date(article.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </Typography>
@@ -558,7 +574,8 @@ export default function Dashboard({ articles, categories }) {
                                 p: 2.5,
                                 borderRadius: 3,
                                 border: '1px solid',
-                                borderColor: 'divider',
+                                borderColor: '#B9DAEA',
+                                bgcolor: '#EAF6FC',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -606,7 +623,8 @@ export default function Dashboard({ articles, categories }) {
                                 p: 2.5,
                                 borderRadius: 3,
                                 border: '1px solid',
-                                borderColor: 'divider',
+                                borderColor: '#CCD8EC',
+                                bgcolor: '#EEF3FB',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -635,7 +653,8 @@ export default function Dashboard({ articles, categories }) {
                                 p: 2.5,
                                 borderRadius: 3,
                                 border: '1px solid',
-                                borderColor: 'divider',
+                                borderColor: '#B8DFCF',
+                                bgcolor: '#E7F6EE',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -670,7 +689,8 @@ export default function Dashboard({ articles, categories }) {
                                 p: 2.5,
                                 borderRadius: 3,
                                 border: '1px solid',
-                                borderColor: 'divider',
+                                borderColor: '#D9C9F0',
+                                bgcolor: '#F3ECFC',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -723,9 +743,9 @@ export default function Dashboard({ articles, categories }) {
                     sx={{
                         width: SIDEBAR_WIDTH,
                         flexShrink: 0,
-                        bgcolor: '#FFFFFF',
+                        bgcolor: '#E7F0FA',
                         borderRight: '1px solid',
-                        borderColor: 'divider',
+                        borderColor: '#B8CCE3',
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'auto',
@@ -803,7 +823,7 @@ export default function Dashboard({ articles, categories }) {
                     </List>
 
                     {/* Sidebar Footer Stats */}
-                    <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ p: 2, borderTop: '1px solid', borderColor: '#B8CCE3', bgcolor: '#DDEAF7' }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                             <Typography variant="caption" sx={{ color: '#8896AB', fontSize: '0.7rem' }}>Total Articles</Typography>
                             <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 700, fontSize: '0.7rem' }}>{articles.length}</Typography>
@@ -1077,6 +1097,55 @@ export default function Dashboard({ articles, categories }) {
                                     </Box>
                                 ))}
                             </Box>
+                        </Box>
+                    )}
+
+                    {viewModal.article?.status?.name === 'published' && (
+                        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #E2E8F0' }}>
+                            <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}
+                            >
+                                <ChatBubbleOutline sx={{ fontSize: 18 }} />
+                                Reader Comments ({viewModal.article?.comments?.length || 0})
+                            </Typography>
+
+                            {(viewModal.article?.comments?.length || 0) === 0 ? (
+                                <Typography variant="body2" sx={{ color: '#8896AB' }}>
+                                    No comments yet on this article.
+                                </Typography>
+                            ) : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                                    {viewModal.article.comments.map((comment) => (
+                                        <Box
+                                            key={comment.id}
+                                            sx={{
+                                                display: 'flex',
+                                                gap: 1.5,
+                                                p: 1.5,
+                                                bgcolor: '#F8FAFC',
+                                                borderRadius: 2,
+                                                border: '1px solid #E2E8F0',
+                                            }}
+                                        >
+                                            <Avatar sx={{ width: 30, height: 30, fontSize: 13, bgcolor: '#2A7B9B' }}>
+                                                {comment.student?.name?.[0] || '?'}
+                                            </Avatar>
+                                            <Box sx={{ minWidth: 0 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                                    {comment.student?.name || 'Unknown User'}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ color: '#8896AB' }}>
+                                                    {new Date(comment.created_at).toLocaleString()}
+                                                </Typography>
+                                                <Typography variant="body2" sx={{ mt: 0.5, color: '#334155' }}>
+                                                    {comment.content}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
                         </Box>
                     )}
                 </DialogContent>

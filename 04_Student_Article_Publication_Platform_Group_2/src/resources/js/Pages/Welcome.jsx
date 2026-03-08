@@ -266,6 +266,29 @@ const LandingPage = () => {
                                 >
                                     Testimonials
                                 </Link>
+                                <InertiaLink
+                                    href="/articles"
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    <Box
+                                        sx={{
+                                            color: theme.palette.text.primary,
+                                            fontSize: '0.95rem',
+                                            fontWeight: 500,
+                                            position: 'relative',
+                                            padding: '8px 12px',
+                                            borderRadius: '6px',
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': {
+                                                color: theme.palette.primary.main,
+                                                backgroundColor: `${theme.palette.primary.main}08`,
+                                                transform: 'translateY(-2px)',
+                                            },
+                                        }}
+                                    >
+                                        Articles
+                                    </Box>
+                                </InertiaLink>
                             </Box>
                         )}
 
@@ -448,6 +471,19 @@ const LandingPage = () => {
                                             }}
                                         >
                                             Learn More
+                                        </Button>
+                                        <Button
+                                            variant="outlined"
+                                            size="large"
+                                            component={InertiaLink}
+                                            href="/articles"
+                                            sx={{
+                                                borderWidth: 2,
+                                                fontWeight: 700,
+                                                '&:hover': { borderWidth: 2 },
+                                            }}
+                                        >
+                                            Browse Articles
                                         </Button>
                                     </Stack>
 

@@ -21,7 +21,14 @@ class WriterController extends Controller
     {
         $user = Auth::user();
 
-        $articles = Article::with(['status', 'category', 'revisions.editor'])
+        $articles = Article::with([
+            'status',
+            'category',
+            'revisions.editor',
+            'comments' => fn ($query) => $query->latest(),
+            'comments.student',
+        ])
+            ->withCount('comments')
             ->where('writer_id', $user->id)
             ->latest()
             ->get();

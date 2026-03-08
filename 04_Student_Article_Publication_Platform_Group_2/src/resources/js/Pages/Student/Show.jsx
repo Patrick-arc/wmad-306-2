@@ -16,11 +16,19 @@ import {
     Comment as CommentIcon,
     ArrowBack as BackIcon,
 } from '@mui/icons-material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function Show({ article }) {
     const { flash } = usePage().props;
     const [snackbar, setSnackbar] = useState({ open: false, message: '' });
+    const [visibleComments, setVisibleComments] = useState(10);
+
+    const displayedComments = useMemo(
+        () => (article.comments || []).slice(0, visibleComments),
+        [article.comments, visibleComments]
+    );
+
+    const hasMoreComments = (article.comments?.length || 0) > visibleComments;
 
     const commentForm = useForm({
         content: '',
@@ -72,7 +80,7 @@ export default function Show({ article }) {
                             Comments ({article.comments?.length || 0})
                         </Typography>
 
-                        {article.comments?.map((comment) => (
+                        {displayedComments.map((comment) => (
                             <Box key={comment.id} sx={{ display: 'flex', gap: 2, mb: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
                                 <Avatar sx={{ width: 32, height: 32, fontSize: 14 }}>
                                     {comment.student?.name?.[0]}
@@ -86,6 +94,17 @@ export default function Show({ article }) {
                                 </Box>
                             </Box>
                         ))}
+
+                        {hasMoreComments && (
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setVisibleComments((count) => count + 10)}
+                                sx={{ mb: 2 }}
+                            >
+                                Load 10 more comments
+                            </Button>
+                        )}
 
                         {/* Comment Form */}
                         <Box component="form" onSubmit={handleComment} sx={{ mt: 2 }}>

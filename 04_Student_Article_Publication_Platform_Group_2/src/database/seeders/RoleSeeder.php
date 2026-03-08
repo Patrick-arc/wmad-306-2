@@ -21,6 +21,7 @@ class RoleSeeder extends Seeder
             'publish articles',
             'view articles',
             'comment articles',
+            'manage users',
         ];
 
         foreach ($permissions as $permission) {
@@ -28,6 +29,20 @@ class RoleSeeder extends Seeder
         }
 
         // Create roles and assign permissions
+        $admin = Role::firstOrCreate(['name' => 'admin']);
+        $admin->syncPermissions([
+            'manage users',
+            'create articles',
+            'edit articles',
+            'submit articles',
+            'revise articles',
+            'review articles',
+            'request revision',
+            'publish articles',
+            'view articles',
+            'comment articles',
+        ]);
+
         $writer = Role::firstOrCreate(['name' => 'writer']);
         $writer->syncPermissions([
             'create articles',
