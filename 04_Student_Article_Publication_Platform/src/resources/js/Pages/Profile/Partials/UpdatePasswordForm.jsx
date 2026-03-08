@@ -1,142 +1,52 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Transition } from '@headlessui/react';
+import CoolButton from '@/Components/CoolButton';
 import { useForm } from '@inertiajs/react';
-import { useRef } from 'react';
+import { Box, Stack, TextField, Typography, Divider } from '@mui/material';
 
-export default function UpdatePasswordForm({ className = '' }) {
-    const passwordInput = useRef();
-    const currentPasswordInput = useRef();
-
-    const {
-        data,
-        setData,
-        errors,
-        put,
-        reset,
-        processing,
-        recentlySuccessful,
-    } = useForm({
-        current_password: '',
-        password: '',
-        password_confirmation: '',
+export default function UpdatePasswordForm() {
+    const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
+        current_password: '', password: '', password_confirmation: '',
     });
 
-    const updatePassword = (e) => {
-        e.preventDefault();
+    const updatePassword = (e) => { e.preventDefault(); put(route('password.update'), { onSuccess: () => reset() }); };
 
-        put(route('password.update'), {
-            preserveScroll: true,
-            onSuccess: () => reset(),
-            onError: (errors) => {
-                if (errors.password) {
-                    reset('password', 'password_confirmation');
-                    passwordInput.current.focus();
-                }
-
-                if (errors.current_password) {
-                    reset('current_password');
-                    currentPasswordInput.current.focus();
-                }
-            },
-        });
+    // Unified card styling - matching UpdateAppearancePreferencesForm
+    const cardStyles = {
+        bgcolor: 'background.paper',
+        borderRadius: '2rem',
+        p: { xs: 3, sm: 4 },
+        boxShadow: 'none',
+        border: '1px solid',
+        borderColor: 'divider',
+        overflow: 'hidden',
     };
 
     return (
-        <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Update Password
-                </h2>
+        <Box sx={cardStyles}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <span>🔒</span> Security
+            </Typography>
+            <Typography color="text.secondary" sx={{ mb: 4 }}>Ensure your account is using a long, random password to stay secure.</Typography>
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Ensure your account is using a long, random password to stay
-                    secure.
-                </p>
-            </header>
+            <Stack component="form" onSubmit={updatePassword} spacing={3}>
+                <TextField label="Current Password" type="password" value={data.current_password}
+                    onChange={(e) => setData('current_password', e.target.value)} error={Boolean(errors.current_password)}
+                    helperText={errors.current_password} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />
+                
+                <Divider />
 
-            <form onSubmit={updatePassword} className="mt-6 space-y-6">
-                <div>
-                    <InputLabel
-                        htmlFor="current_password"
-                        value="Current Password"
-                    />
+                <TextField label="New Password" type="password" value={data.password}
+                    onChange={(e) => setData('password', e.target.value)} error={Boolean(errors.password)}
+                    helperText={errors.password} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />
 
-                    <TextInput
-                        id="current_password"
-                        ref={currentPasswordInput}
-                        value={data.current_password}
-                        onChange={(e) =>
-                            setData('current_password', e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                    />
+                <TextField label="Confirm New Password" type="password" value={data.password_confirmation}
+                    onChange={(e) => setData('password_confirmation', e.target.value)} error={Boolean(errors.password_confirmation)}
+                    helperText={errors.password_confirmation} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />
 
-                    <InputError
-                        message={errors.current_password}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="password" value="New Password" />
-
-                    <TextInput
-                        id="password"
-                        ref={passwordInput}
-                        value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        value={data.password_confirmation}
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
-
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">
-                            Saved.
-                        </p>
-                    </Transition>
-                </div>
-            </form>
-        </section>
+                <Stack direction="row" spacing={2} alignItems="center">
+                    <CoolButton type="submit" disabled={processing}>Update Password</CoolButton>
+                    {recentlySuccessful && <Typography color="success.main" sx={{ fontWeight: 600 }}>✨ Updated</Typography>}
+                </Stack>
+            </Stack>
+        </Box>
     );
 }
