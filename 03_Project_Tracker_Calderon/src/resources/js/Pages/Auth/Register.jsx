@@ -1,155 +1,91 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import {
-    Container,
-    Card,
-    CardContent,
-    TextField,
-    Button,
-    Box,
-    Typography,
-    Alert,
-    FormControlLabel,
-    Checkbox,
-    CircularProgress,
-} from '@mui/material';
+import { Container, Card, CardContent, TextField, Button, Box, Typography, CircularProgress } from '@mui/material';
 import { Lock, Email, Person } from '@mui/icons-material';
 import GuestLayout from '@/Layouts/GuestLayout';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
+        name: '', email: '', password: '', password_confirmation: '',
     });
 
     const submit = (e) => {
         e.preventDefault();
+        post(route('register'), { onFinish: () => reset('password', 'password_confirmation') });
+    };
 
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
+    const inputStyle = {
+        bgcolor: '#222', borderRadius: 1, mb: 2,
+        '& .MuiFilledInput-root': { color: '#FFF' },
+        '& .MuiInputLabel-root': { color: '#777', fontWeight: 'bold' }
     };
 
     return (
         <GuestLayout>
-            <Head title="Register" />
-
+            <Head title="New User Registration" />
             <Container maxWidth="sm">
-                <Card sx={{ mt: 8, mb: 4 }}>
-                    <CardContent sx={{ p: 4 }}>
+                <Box sx={{position: 'absolute', top: '2%', left: '0%', width: '100%', height: '20%', bgcolor: '#131212', opacity: 1, zIndex: 0}}> </Box>
+                <Card sx={{ mt: 4, mb: 4, bgcolor: '#171717', borderRadius: 4, border: '2px solid #333' }}>
+                    <CardContent sx={{ p: { xs: 3, md: 5 } }}>
                         <Box sx={{ textAlign: 'center', mb: 4 }}>
-                            <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
-                                Create Account
+                            <Typography variant="h4" sx={{ fontWeight: 900, color: '#DA0037', letterSpacing: 1, mb:2}}>
+                                Register
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Sign up to get started with Project Tracker
+                            <Typography variant="body2" sx={{ color: '#777', fontWeight: 'bold' }}>
+                                Establish your profile
                             </Typography>
                         </Box>
 
                         <form onSubmit={submit}>
                             <TextField
-                                fullWidth
-                                id="name"
-                                name="name"
-                                label="Full Name"
-                                value={data.name}
-                                autoComplete="name"
-                                autoFocus
-                                margin="normal"
-                                error={!!errors.name}
-                                helperText={errors.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                InputProps={{
-                                    startAdornment: <Person sx={{ mr: 1, color: 'text.secondary' }} />,
-                                }}
+                                fullWidth variant="filled" id="name" label="Full Designation (Name)"
+                                value={data.name} autoFocus error={!!errors.name} helperText={errors.name}
+                                onChange={(e) => setData('name', e.target.value)} sx={inputStyle}
+                                InputProps={{ startAdornment: <Person sx={{ mr: 1, color: '#DA0037', mt: 2.5 ,}} /> }}
                             />
 
                             <TextField
-                                fullWidth
-                                id="email"
-                                type="email"
-                                name="email"
-                                label="Email Address"
-                                value={data.email}
-                                autoComplete="username"
-                                margin="normal"
-                                error={!!errors.email}
-                                helperText={errors.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                InputProps={{
-                                    startAdornment: <Email sx={{ mr: 1, color: 'text.secondary' }} />,
-                                }}
+                                fullWidth variant="filled" id="email" type="email" label="Comms Channel (Email)"
+                                value={data.email} error={!!errors.email} helperText={errors.email}
+                                onChange={(e) => setData('email', e.target.value)} sx={inputStyle}
+                                InputProps={{ startAdornment: <Email sx={{ mr: 1, color: '#DA0037', mt: 2.5 , }} /> }}
                             />
 
                             <TextField
-                                fullWidth
-                                id="password"
-                                type="password"
-                                name="password"
-                                label="Password"
-                                value={data.password}
-                                autoComplete="new-password"
-                                margin="normal"
-                                error={!!errors.password}
-                                helperText={errors.password}
-                                onChange={(e) => setData('password', e.target.value)}
-                                InputProps={{
-                                    startAdornment: <Lock sx={{ mr: 1, color: 'text.secondary' }} />,
-                                }}
+                                fullWidth variant="filled" id="password" type="password" label="Passcode"
+                                value={data.password} error={!!errors.password} helperText={errors.password}
+                                onChange={(e) => setData('password', e.target.value)} sx={inputStyle}
+                                InputProps={{ startAdornment: <Lock sx={{ mr: 1, color: '#DA0037', mt: 2.5 , }} /> }}
                             />
 
                             <TextField
-                                fullWidth
-                                id="password_confirmation"
-                                type="password"
-                                name="password_confirmation"
-                                label="Confirm Password"
-                                value={data.password_confirmation}
-                                autoComplete="new-password"
-                                margin="normal"
-                                error={!!errors.password_confirmation}
-                                helperText={errors.password_confirmation}
-                                onChange={(e) => setData('password_confirmation', e.target.value)}
-                                InputProps={{
-                                    startAdornment: <Lock sx={{ mr: 1, color: 'text.secondary' }} />,
-                                }}
+                                fullWidth variant="filled" id="password_confirmation" type="password" label="Confirm Passcode"
+                                value={data.password_confirmation} error={!!errors.password_confirmation} helperText={errors.password_confirmation}
+                                onChange={(e) => setData('password_confirmation', e.target.value)} sx={inputStyle}
+                                InputProps={{ startAdornment: <Lock sx={{ mr: 1, color: '#DA0037', mt: 2.5 , }} /> }}
                             />
 
-                            <Box sx={{ textAlign: 'center', mt: 3, mb: 2 }}>
-                                <Button
-                                    type="submit"
-                                    fullWidth
-                                    variant="contained"
-                                    size="large"
-                                    disabled={processing}
-                                >
-                                    {processing ? (
-                                        <CircularProgress size={24} color="inherit" />
-                                    ) : (
-                                        'Create Account'
-                                    )}
-                                </Button>
-                            </Box>
+                            <Button
+                                type="submit" fullWidth disabled={processing}
+                                sx={{
+                                    mt: 2, bgcolor: '#DA0037', color: '#FFF', fontWeight: '900', borderRadius: 10,
+                                    py: 1.5, letterSpacing: 2, border: '2px solid rgba(255,255,255,0.2)',
+                                    '&:hover': { bgcolor: '#ff1744', transform: 'scale(1.02)' }, transition: '0.2s'
+                                }}
+                            >
+                                {processing ? <CircularProgress size={24} sx={{ color: '#FFF' }} /> : 'Create Profile'}
+                            </Button>
 
-                            <Box sx={{ textAlign: 'center' }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Already have an account?{' '}
-                                    <Link
-                                        href={route('login')}
-                                        style={{
-                                            color: '#1976d2',
-                                            textDecoration: 'none',
-                                            fontWeight: 500,
-                                        }}
-                                    >
-                                        Sign in
+                            <Box sx={{ textAlign: 'center', mt: 4 }}>
+                                <Typography variant="caption" sx={{ color: '#777', fontWeight: 'bold' }}>
+                                    <Link href={route('login')} style={{ color: '#FFF', textDecoration: 'underline' }}>
+                                        LOGIN HERE
                                     </Link>
                                 </Typography>
                             </Box>
                         </form>
                     </CardContent>
                 </Card>
+                <Box sx={{position: 'absolute', top: '90%', left: '0%', width: '100%', height: '20%', bgcolor: '#131212', opacity: 1, zIndex: 0}}> </Box>
             </Container>
         </GuestLayout>
     );

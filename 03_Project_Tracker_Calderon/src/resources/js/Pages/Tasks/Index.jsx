@@ -104,7 +104,7 @@ export default function Index({ tasks, projects }) {
             <Container maxWidth="xl" sx={{ mt: 5, mb: 4 }}>
                 
 
-                <Box sx={{ display: 'flex', fontSize: '1rem', gap: 1, ml: { xs: 2, md: 8 }, mb: '-3px', position: 'relative', zIndex: 2 }}>
+                <Box sx={{ display: 'flex', fontSize: '1rem', gap: 1, ml: { xs: 2, md: 8 }, mb: '-3px', position: 'relative', zIndex: 0 }}>
                     {tabs.map((tab) => {
                         const isActive = tab.name === 'Tasks';
                         return (
@@ -112,8 +112,8 @@ export default function Index({ tasks, projects }) {
                                 key={tab.name}
                                 onClick={() => !isActive && router.visit(route(tab.route))}
                                 sx={{
-                                    bgcolor: isActive ? '#499636' : '#666', 
-                                    color: isActive ? theme.palette.text.primary : theme.palette.text.primary,
+                                    bgcolor: isActive ? '#499636' : '#222', 
+                                    color: isActive ? theme.palette.text.primary : '#777',
                                     px: 2,
                                     py: 1.5,
                                     borderTopLeftRadius: 12,

@@ -47,7 +47,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                             <Box sx={{ mt: 6 }}>
                                 <Card>
                                     <CardContent sx={{ p: 4 }}>
-                                        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: 'error.main' }}>
+                                        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: 'theme.palette.text.primary' }}>
                                             Delete Account
                                         </Typography>
                                         <DeleteUserForm />

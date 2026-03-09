@@ -1,14 +1,18 @@
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { useForm, router } from '@inertiajs/react'; 
 import {
     Box,
     Typography,
     Snackbar,
     Alert,
     Container,
+    Button,
+    Paper,
+    Stack,
 } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material'; 
 import { useThemeContext } from '@/Components/ThemeProvider';
 import { useState } from 'react';
 
@@ -31,6 +35,7 @@ export default function UpdateProfileInformation({
     const submit = (e) => {
         e.preventDefault();
         patch(route('profile.update'), {
+            preserveScroll: true,
             onSuccess: () => {
                 setSnackbar({
                     open: true,
@@ -53,114 +58,130 @@ export default function UpdateProfileInformation({
     };
 
     return (
-        <Box className={className}>
-            {/* Form Container */}
-            <Container component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {/* Name Field */}
-                <Box>
-                    <InputLabel htmlFor="name" value="Name" />
-                    <TextInput
-                        id="name"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        error={errors.name}
-                        helperText={errors.name}
-                        required
-                        autoComplete="name"
-                    />
-                </Box>
+        <Container maxWidth="lg" className={className}>
+            <Box sx={{ mb: 3 }}>
+                <Button
+                    onClick={() => router.visit(route('dashboard'))}
+                    startIcon={<ArrowBack />}
+                    sx={{ textTransform: 'none' }}
+                >
+                    Back to Dashboard
+                </Button>
+            </Box>
 
-                {/* Email Field */}
-                <Box>
-                    <InputLabel htmlFor="email" value="Email" />
-                    <TextInput
-                        id="email"
-                        type="email"
-                        value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
-                        error={errors.email}
-                        helperText={errors.email}
-                        required
-                        autoComplete="username"
-                    />
-                </Box>
+            <Paper elevation={0} sx={{ p: 4, border: 1, borderColor: 'divider', borderRadius: 2 }}>
+                <Box component="form" onSubmit={submit}>
+                    <Stack spacing={3}>
+                        {/* Name Field */}
+                        <Box>
+                            <InputLabel htmlFor="name" value="Name" />
+                            <TextInput
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                error={errors.name}
+                                autoComplete="name"
+                                isFocused
+                                required
+                            />
+                            {errors.name && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                                    {errors.name}
+                                </Typography>
+                            )}
+                        </Box>
 
-                {/* Email Verification Section */}
-                {mustVerifyEmail && user.email_verified_at === null && (
-                    <Box sx={{ 
-                        p: 3, 
-                        backgroundColor: theme.palette.warning.light,
-                        borderRadius: 2,
-                        border: `1px solid ${theme.palette.warning.main}`
-                    }}>
-                        <Typography variant="body2" sx={{ color: theme.palette.warning.dark, mb: 2 }}>
-                            Your email address is unverified.
-                        </Typography>
-                        <Link
-                            href={route('verification.send')}
-                            method="post"
-                            as="button"
-                            sx={{
-                                textDecoration: 'none',
-                                color: theme.palette.warning.main,
-                                '&:hover': {
-                                    textDecoration: 'underline',
-                                }
-                            }}
-                        >
-                            <Button
-                                variant="outlined"
-                                size="small"
-                                sx={{
-                                    color: theme.palette.warning.main,
-                                    borderColor: theme.palette.warning.main,
+                        {/* Email Field */}
+                        <Box>
+                            <InputLabel htmlFor="email" value="Email" />
+                            <TextInput
+                                id="email"
+                                type="email"
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                                error={errors.email}
+                                autoComplete="username"
+                                required
+                            />
+                            {errors.email && (
+                                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                                    {errors.email}
+                                </Typography>
+                            )}
+                        </Box>
+
+                        {/* Email Verification Section */}
+                        {mustVerifyEmail && user.email_verified_at === null && (
+                            <Box sx={{ 
+                                p: 2, 
+                                backgroundColor: theme.palette.warning.light,
+                                borderRadius: 2,
+                                border: `1px solid ${theme.palette.warning.main}`
+                            }}>
+                                <Typography variant="body2" sx={{ color: theme.palette.warning.dark, mb: 1 }}>
+                                    Your email address is unverified.
+                                </Typography>
+                                <Button
+                                    onClick={() => router.post(route('verification.send'))}
+                                    sx={{ 
+                                        p: 0,
+                                        minWidth: 0,
+                                        textTransform: 'none',
+                                        color: theme.palette.warning.dark, 
+                                        textDecoration: 'underline',
+                                        fontWeight: 'bold',
+                                        '&:hover': { backgroundColor: 'transparent', textDecoration: 'none' }
+                                    }}
+                                >
+                                    Click here to re-send verification email.
+                                </Button>
+                            </Box>
+                        )}
+
+                        {/* Status Message */}
+                        {status === 'verification-link-sent' && (
+                            <Alert severity="success" sx={{ 
+                                backgroundColor: theme.palette.success.light,
+                                color: theme.palette.success.dark,
+                                border: `1px solid ${theme.palette.success.main}`
+                            }}>
+                                A new verification link has been sent to your email address.
+                            </Alert>
+                        )}
+
+                        {/* Action Buttons */}
+                        <Box sx={{ width: '100%',   display: 'flex', alignItems: 'center', gap: 2, pt: 1 }}>
+                            <Button 
+                                type="submit"
+                                disabled={processing} 
+                                sx={{ 
+                                    pt: 1, 
+                                    borderRadius: 1,
+                                    bgcolor: theme.palette.primary.main, 
+                                    color: theme.palette.text.primary,
+                                    textTransform: 'none',
+                                    px: 3,
                                     '&:hover': {
-                                        backgroundColor: theme.palette.warning.main,
-                                        color: theme.palette.warning.contrastText,
+                                        bgcolor: theme.palette.primary.dark
                                     }
                                 }}
                             >
-                                Click here to re-send verification email.
+                                Save Changes
                             </Button>
-                        </Link>
-                    </Box>
-                )}
 
-                {/* Status Message */}
-                {status === 'verification-link-sent' && (
-                    <Box sx={{ 
-                        p: 3, 
-                        backgroundColor: theme.palette.success.light,
-                        borderRadius: 2,
-                        border: `1px solid ${theme.palette.success.main}`
-                    }}>
-                        <Typography variant="body2" sx={{ color: theme.palette.success.dark }}>
-                            A new verification link has been sent to your email address.
-                        </Typography>
-                    </Box>
-                )}
-
-                {/* Action Buttons */}
-                <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'center' }}>
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
-                    {recentlySuccessful && (
-                        <Box
-                            sx={{
-                                p: 2,
-                                mt: 2,
-                                backgroundColor: theme.palette.success.light,
-                                border: `1px solid ${theme.palette.success.main}`,
-                                borderRadius: 2,
-                            }}
-                        >
-                            <Typography variant="body2" sx={{ color: theme.palette.success.dark }}>
-                                Saved!
-                            </Typography>
+                            {recentlySuccessful && (
+                                <Typography 
+                                    variant="body2" 
+                                    sx={{ color: theme.palette.success.main, fontWeight: 'medium' }}
+                                >
+                                    Saved successfully.
+                                </Typography>
+                            )}
                         </Box>
-                    )}
+                    </Stack>
                 </Box>
-            </Container>
-            
+            </Paper>
+
             {/* Success/Error Snackbar */}
             <Snackbar
                 open={snackbar.open}
@@ -172,6 +193,6 @@ export default function UpdateProfileInformation({
                     {snackbar.message}
                 </Alert>
             </Snackbar>
-        </Box>
+        </Container>
     );
 }

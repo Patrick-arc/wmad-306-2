@@ -16,14 +16,12 @@ import { useThemeContext } from '@/Components/ThemeProvider';
 export default function UpdatePasswordForm({ className = '' }) {
     const { theme } = useThemeContext();
     const [showPasswords, setShowPasswords] = useState({
-        current: false,
         new: false,
         confirm: false
     });
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     const { data, setData, patch, processing, errors, reset } = useForm({
-        current_password: '',
         password: '',
         password_confirmation: '',
     });
@@ -38,7 +36,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                     severity: 'success'
                 });
                 reset();
-                setShowPasswords({ current: false, new: false, confirm: false });
+                setShowPasswords({ new: false, confirm: false });
             },
             onError: () => {
                 setSnackbar({
@@ -85,34 +83,8 @@ export default function UpdatePasswordForm({ className = '' }) {
 
     return (
         <Box className={className}>
-            {/* Form Container */}
             <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {/* Current Password Field */}
-                <Box>
-                    <TextField
-                        fullWidth
-                        label="Current Password"
-                        type={showPasswords.current ? 'text' : 'password'}
-                        value={data.current_password}
-                        onChange={(e) => setData('current_password', e.target.value)}
-                        error={!!errors.current_password}
-                        helperText={errors.current_password}
-                        required
-                        autoComplete="current-password"
-                        InputProps={{
-                            endAdornment: (
-                                <IconButton
-                                    onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                                    edge="end"
-                                >
-                                    {showPasswords.current ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            ),
-                        }}
-                    />
-                </Box>
 
-                {/* New Password Field */}
                 <Box>
                     <TextField
                         fullWidth
@@ -137,7 +109,6 @@ export default function UpdatePasswordForm({ className = '' }) {
                     />
                 </Box>
 
-                {/* Confirm Password Field */}
                 <Box>
                     <TextField
                         fullWidth
@@ -162,7 +133,6 @@ export default function UpdatePasswordForm({ className = '' }) {
                     />
                 </Box>
 
-                {/* Action Buttons */}
                 <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'center' }}>
                     <Button
                         type="submit"
@@ -171,7 +141,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         sx={{
                             background: theme.palette.primary.main,
                             color: theme.palette.primary.contrastText,
-                            borderRadius: 2,
+                            borderRadius: 1,
                             textTransform: 'none',
                             '&:hover': {
                                 background: theme.palette.primary.dark,
@@ -193,7 +163,6 @@ export default function UpdatePasswordForm({ className = '' }) {
                 </Box>
             </Box>
 
-            {/* Success/Error Snackbar */}
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={4000}
