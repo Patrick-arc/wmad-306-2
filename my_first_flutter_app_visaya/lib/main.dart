@@ -74,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: Row(
+        // FIXED: Added MainAxisAlignment
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
@@ -81,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tooltip: 'Decrement',
             child: const Icon(Icons.remove),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 10), // Added space between buttons
           FloatingActionButton(
             onPressed: () => setState(() {
               _counter = 0;
@@ -89,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
             tooltip: 'Reset',
             child: const Icon(Icons.restore),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 10), // Added space between buttons
           FloatingActionButton(
             onPressed: _incrementCounter,
             tooltip: 'Increment',
