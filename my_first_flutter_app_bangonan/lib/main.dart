@@ -39,7 +39,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _decrementCounter() {
     setState(() {
-      _counter--;
+      if (_counter > 0) {
+        _counter--;
+      }
     });
   }
 
@@ -58,13 +60,13 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: .center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'My First Flutter App Bangonan',
               style: TextStyle(
                 fontSize: 25,
-                color: Colors.green,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: 20),
@@ -73,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: TextStyle(
                 fontSize: 25,
-                color: Colors.green,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
@@ -83,9 +85,9 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            onPressed: _decrementCounter,
+            onPressed: _counter > 0 ? _decrementCounter : null,
             tooltip: 'Decrement',
-            child: const Icon(Icons.arrow_left),
+            child: const Icon(Icons.remove),
           ),
           const SizedBox(width: 10),
           FloatingActionButton(
@@ -97,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
           FloatingActionButton(
             onPressed: _incrementCounter,
             tooltip: 'Increment',
-            child: const Icon(Icons.arrow_right),
+            child: const Icon(Icons.add),
           ),
         ],
       ),
