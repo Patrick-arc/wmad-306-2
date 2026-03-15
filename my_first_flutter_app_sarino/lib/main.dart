@@ -11,11 +11,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My First Flutter App Bangonan',
+      title: 'My First Flutter App Sarino',
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.lightGreenAccent),
       ),
-      home: const MyHomePage(title: 'My First Flutter App Bangonan'),
+      home: const MyHomePage(title: 'My First Flutter App Sarino'),
     );
   }
 }
@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: .center,
           children: [
             Text(
-              'My First Flutter App Bangonan',
+              'My First Flutter App Sarino',
               style: TextStyle(
                 fontSize: 25,
                 color: Colors.green,
