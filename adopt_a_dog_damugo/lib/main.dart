@@ -1,9 +1,7 @@
 import 'package:adopt_a_dog/screens/breed_list_screen.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const AdoptADogApp());
-}
+void main() => runApp(const AdoptADogApp());
 
 class AdoptADogApp extends StatelessWidget {
   const AdoptADogApp({super.key});
@@ -14,21 +12,15 @@ class AdoptADogApp extends StatelessWidget {
       title: 'Adopt-a-Dog',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: Colors.green,
+        colorSchemeSeed: Colors.teal,
         useMaterial3: true,
+        scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.teal,
           foregroundColor: Colors.white,
         ),
-        listTileTheme: const ListTileThemeData(
-          iconColor: Colors.greenAccent,
-          textColor: Colors.green,
-          shape: Border(
-            bottom: BorderSide(width: 1)
-          ),
-        )
       ),
-      home: BreedListScreen(),
+      home: const BreedListScreen(),
     );
   }
 }
