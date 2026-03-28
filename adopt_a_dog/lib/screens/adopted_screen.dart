@@ -3,17 +3,17 @@ import '../services/prefs_service.dart';
 import '../services/dog_api_service.dart';
 import 'breed_detail_screen.dart';
 
-class FavoritesScreen extends StatefulWidget {
-  const FavoritesScreen({super.key});
+class AdoptedScreen extends StatefulWidget {
+  const AdoptedScreen({super.key});
 
   @override
-  State<FavoritesScreen> createState() => _FavoritesScreenState();
+  State<AdoptedScreen> createState() => _AdoptedScreenState();
 }
 
-class _FavoritesScreenState extends State<FavoritesScreen> {
+class _AdoptedScreenState extends State<AdoptedScreen> {
   final _prefs = PrefsService();
   final _api = DogApiService();
-  List<String> _favorites = [];
+  List<String> _adopted = [];
 
   @override
   void initState() {
@@ -22,7 +22,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   void _load() async {
-    _favorites = await _prefs.loadFavorites();
+    _adopted = await _prefs.loadAdopted();
     setState(() {});
   }
 
@@ -37,24 +37,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Favorites')),
-      body: _favorites.isEmpty
-          ? const Center(child: Text('No favorites yet'))
+      appBar: AppBar(title: const Text('Adopted Dogs')),
+      body: _adopted.isEmpty
+          ? const Center(child: Text('You haven\'t adopted any dogs yet!'))
           : ListView.builder(
-              itemCount: _favorites.length,
+              itemCount: _adopted.length,
               itemBuilder: (context, index) {
-                final name = _favorites[index];
+                final name = _adopted[index];
                 return ListTile(
+                  leading: const Icon(Icons.verified, color: Colors.green),
                   title: Text(name[0].toUpperCase() + name.substring(1)),
                   onTap: () => _openDetail(name), // Made functional
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      _favorites.removeAt(index);
-                      _prefs.saveFavorites(_favorites);
-                      setState(() {});
-                    },
-                  ),
                 );
               },
             ),
