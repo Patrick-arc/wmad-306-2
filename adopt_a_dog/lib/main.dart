@@ -14,15 +14,15 @@ class AdoptADogApp extends StatelessWidget {
       title: 'Adopt-a-Dog',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: Colors.green,
+        colorSchemeSeed: Colors.orange,
         useMaterial3: true,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.orange,
           foregroundColor: Colors.white,
         ),
         listTileTheme: const ListTileThemeData(
-          iconColor: Colors.greenAccent,
-          textColor: Colors.green,
+          iconColor: Colors.orangeAccent,
+          textColor: Colors.orange,
           shape: Border(
             bottom: BorderSide(width: 1)
           ),
