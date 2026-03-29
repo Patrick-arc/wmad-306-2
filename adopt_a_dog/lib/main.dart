@@ -14,19 +14,35 @@ class AdoptADogApp extends StatelessWidget {
       title: 'Adopt-a-Dog',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: Colors.green,
+        colorSchemeSeed: Colors.orange,
         useMaterial3: true,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.deepOrange,
           foregroundColor: Colors.white,
+          elevation: 4,
         ),
-        listTileTheme: const ListTileThemeData(
-          iconColor: Colors.greenAccent,
-          textColor: Colors.green,
-          shape: Border(
-            bottom: BorderSide(width: 1)
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        )
+        ),
+        cardTheme: CardThemeData(  // ← changed CardTheme to CardThemeData
+          color: Colors.orange[50],
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        scaffoldBackgroundColor: Colors.amber[50],
+        chipTheme: ChipThemeData(
+          backgroundColor: Colors.orange[100]!,
+          selectedColor: Colors.deepOrange,
+          labelStyle: const TextStyle(color: Colors.black),
+        ),
       ),
       home: BreedListScreen(),
     );
