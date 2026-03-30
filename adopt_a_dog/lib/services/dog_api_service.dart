@@ -24,4 +24,29 @@ class DogApiService {
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
   }
+
+  Future<String> fetchRandomImage({required String breed, String? subBreed}) async {
+    final path = subBreed == null ? '$breed' : '$breed/$subBreed';
+    final uri = Uri.parse('$_base/breed/$path/images/random');
+    final response = await http.get(uri);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load image for $path');
+    }
+
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    return data['message'] as String;
+  }
+
+  Future<String> fetchRandomAnyImage() async {
+    final uri = Uri.parse('$_base/breeds/image/random');
+    final response = await http.get(uri);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load random dog image');
+    }
+
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    return data['message'] as String;
+  }
 }
