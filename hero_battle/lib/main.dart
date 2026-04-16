@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'router/app_router.dart';
+import 'providers/deck_provider.dart';
+import 'providers/battle_provider.dart';
 import 'providers/player_provider.dart';
+import 'providers/hero_search_provider.dart';
+import 'router/app_router.dart';
 
 void main() => runApp(const HeroBattleApp());
 
@@ -11,8 +14,13 @@ class HeroBattleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers:[
+      providers: [
         ChangeNotifierProvider(create: (_) => PlayerProvider()),
+        ChangeNotifierProvider(create: (_) => DeckProvider()),
+        ChangeNotifierProvider(create: (_) => BattleProvider()),
+        ChangeNotifierProvider(
+          create: (_) => HeroSearchProvider(),
+        ),
       ],
       child: Consumer<PlayerProvider>(
         builder: (context, player, _) {
@@ -29,14 +37,14 @@ class HeroBattleApp extends StatelessWidget {
   }
 
   ThemeData _darkTheme() => ThemeData(
-    colorSchemeSeed: const Color(0xFF7B2FBE),
-    brightness: Brightness.dark,
-    useMaterial3: true,
-  );
+        colorSchemeSeed: const Color(0xFF7B2FBE),
+        brightness: Brightness.dark,
+        useMaterial3: true,
+      );
 
   ThemeData _lightTheme() => ThemeData(
-    colorSchemeSeed: const Color(0xFF7B2FBE),
-    brightness: Brightness.light,
-    useMaterial3: true,
-  );
+        colorSchemeSeed: const Color(0xFF7B2FBE),
+        brightness: Brightness.light,
+        useMaterial3: true,
+      );
 }
