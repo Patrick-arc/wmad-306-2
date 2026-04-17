@@ -146,7 +146,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '${record.playerHero} vs ${record.aiHero}',
+                    'Your Team vs Opponent Team',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -171,7 +171,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -195,6 +195,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                   child: Text(
                     _formatDate(record.playedAt),
+                    style: theme.textTheme.labelLarge,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.56),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'Starter: ${record.playerHero}',
+                    style: theme.textTheme.labelLarge,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.56),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'Enemy starter: ${record.aiHero}',
                     style: theme.textTheme.labelLarge,
                   ),
                 ),
@@ -231,71 +253,71 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ),
         child: FutureBuilder<List<BattleRecord>>(
-          future: DatabaseService().loadHistory(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
-            }
+            future: DatabaseService().loadHistory(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            final records = snapshot.data ?? <BattleRecord>[];
-            if (records.isEmpty) {
-              return Center(
-                child: Container(
-                  margin: const EdgeInsets.all(20),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 22,
-                    vertical: 20,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: theme.colorScheme.outline.withValues(alpha: 0.24),
+              final records = snapshot.data ?? <BattleRecord>[];
+              if (records.isEmpty) {
+                return Center(
+                  child: Container(
+                    margin: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: theme.colorScheme.outline.withValues(alpha: 0.24),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(
+                          Icons.history_toggle_off,
+                          size: 40,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('No battles recorded yet.'),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(
-                        Icons.history_toggle_off,
-                        size: 40,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text('No battles recorded yet.'),
-                    ],
-                  ),
-                ),
-              );
-            }
+                );
+              }
 
-            final winCount = records.where((r) => r.playerWon).length;
-            final winRate = ((winCount / records.length) * 100).toStringAsFixed(1);
-            final recordsToDisplay = _showAllRecords
-              ? records
-              : records.take(_initialVisibleCount).toList();
-            final hasMoreRecords = records.length > _initialVisibleCount;
+              final winCount = records.where((r) => r.playerWon).length;
+              final winRate = ((winCount / records.length) * 100).toStringAsFixed(1);
+              final recordsToDisplay = _showAllRecords
+                ? records
+                : records.take(_initialVisibleCount).toList();
+              final hasMoreRecords = records.length > _initialVisibleCount;
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final horizontalPadding = constraints.maxWidth >= 1100 ? 24.0 : 14.0;
-                final crossAxisCount = constraints.maxWidth >= 900 ? 2 : 1;
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final horizontalPadding = constraints.maxWidth >= 1100 ? 24.0 : 14.0;
+                  final crossAxisCount = constraints.maxWidth >= 900 ? 2 : 1;
 
-                return CustomScrollView(
-                  slivers: <Widget>[
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        horizontalPadding,
-                        14,
-                        horizontalPadding,
-                        8,
-                      ),
-                      sliver: SliverToBoxAdapter(
-                        child: Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: <Widget>[
-                            SizedBox(
+                  return CustomScrollView(
+                    slivers: <Widget>[
+                      SliverPadding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          14,
+                          horizontalPadding,
+                          8,
+                        ),
+                        sliver: SliverToBoxAdapter(
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: <Widget>[
+                              SizedBox(
                               width: constraints.maxWidth >= 650
                                   ? (constraints.maxWidth - (horizontalPadding * 2) - 20) / 3
                                   : constraints.maxWidth - (horizontalPadding * 2),
@@ -391,16 +413,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           crossAxisCount: crossAxisCount,
                           mainAxisSpacing: 14,
                           crossAxisSpacing: 12,
-                          childAspectRatio: 1.95,
+                          mainAxisExtent: 138,
                         ),
                       ),
                     ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
       ),
     );
   }

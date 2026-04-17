@@ -34,7 +34,11 @@ class _HpBarState extends State<HpBar> {
             color: Colors.white,
             fontWeight: FontWeight.w600,
             shadows: const <Shadow>[
-              Shadow(blurRadius: 6, color: Colors.black, offset: Offset(0, 1)),
+              Shadow(
+                blurRadius: 6,
+                color: Colors.black,
+                offset: Offset(0, 1),
+              ),
             ],
           ),
         ),

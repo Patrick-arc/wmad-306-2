@@ -13,6 +13,7 @@ class BattleHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final auraColor = _heroAuraColor(hero);
     final statTextStyle = textTheme.titleLarge!.copyWith(
       color: Colors.white,
       fontWeight: FontWeight.bold,
@@ -40,6 +41,30 @@ class BattleHeroCard extends StatelessWidget {
         height: 340, // Increased height for new design
         child: Stack(
           children: <Widget>[
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: isPlayer
+                        ? const Alignment(-0.1, -0.25)
+                        : const Alignment(0.1, -0.25),
+                    radius: 1.05,
+                    colors: <Color>[
+                      auraColor.withValues(alpha: 0.34),
+                      Colors.transparent,
+                    ],
+                    stops: const <double>[0.08, 1.0],
+                  ),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: auraColor.withValues(alpha: 0.18),
+                      blurRadius: 30,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+              ),
+            ),
             // Background Image
             Positioned.fill(
               child: HeroImage(
@@ -137,6 +162,30 @@ class BattleHeroCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _heroAuraColor(HeroModel hero) {
+    final attack = hero.attack;
+    final defense = hero.defense;
+    final hp = hero.maxHp;
+
+    final strongest = <String, int>{
+      'attack': attack,
+      'defense': defense,
+      'hp': hp,
+    };
+    final dominant = strongest.entries
+        .reduce((a, b) => a.value >= b.value ? a : b)
+        .key;
+
+    switch (dominant) {
+      case 'hp':
+        return const Color(0xFF57D17E);
+      case 'defense':
+        return const Color(0xFF4C9CFF);
+      default:
+        return const Color(0xFFFF7A45);
+    }
   }
 }
 

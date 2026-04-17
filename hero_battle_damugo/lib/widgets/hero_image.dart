@@ -30,6 +30,9 @@ class HeroImage extends StatefulWidget {
 }
 
 class _HeroImageState extends State<HeroImage> {
+  static const String _fallbackAvatarAsset =
+      'assets/images/fallbackAvatar.png';
+
   static final Dio _dio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 12),
@@ -178,7 +181,7 @@ class _HeroImageState extends State<HeroImage> {
   @override
   Widget build(BuildContext context) {
     if (widget.urls.isEmpty) {
-      return widget.error;
+      return _buildFallbackAvatar();
     }
 
     final assetPath = widget.urls.firstWhere(
@@ -197,6 +200,7 @@ class _HeroImageState extends State<HeroImage> {
       return Image.asset(
         resolvedAsset,
         fit: widget.fit,
+        errorBuilder: (_, _, _) => _buildFallbackAvatar(),
       );
     }
 
@@ -209,7 +213,7 @@ class _HeroImageState extends State<HeroImage> {
 
         final bytes = snapshot.data;
         if (bytes == null || bytes.isEmpty) {
-          return widget.error;
+          return _buildFallbackAvatar();
         }
 
         return Image.memory(
@@ -218,6 +222,20 @@ class _HeroImageState extends State<HeroImage> {
           gaplessPlayback: true,
         );
       },
+    );
+  }
+
+  Widget _buildFallbackAvatar() {
+    return ColoredBox(
+      color: const Color(0xFF1E1D2A),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Image.asset(
+          _fallbackAvatarAsset,
+          fit: BoxFit.contain,
+          errorBuilder: (_, _, _) => widget.error,
+        ),
+      ),
     );
   }
 }
