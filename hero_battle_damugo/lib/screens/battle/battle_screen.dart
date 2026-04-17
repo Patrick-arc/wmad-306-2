@@ -24,6 +24,9 @@ class BattleScreen extends StatefulWidget {
 
 class _BattleScreenState extends State<BattleScreen>
     with TickerProviderStateMixin {
+  static const String _openDrawerArg = 'openDrawer';
+  static const String _fromDrawerArg = 'fromDrawer';
+
   final SuperheroApiService _api = SuperheroApiService(
     apiToken: AppConfig.superheroApiToken,
   );
@@ -42,12 +45,27 @@ class _BattleScreenState extends State<BattleScreen>
   bool _isScreenReady = false;
 
   void _goBack() {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final openedFromDrawer =
+        args is Map<String, dynamic> && args[_fromDrawerArg] == true;
+    if (openedFromDrawer) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        RouteNames.home,
+        (_) => false,
+        arguments: <String, dynamic>{_openDrawerArg: true},
+      );
+      return;
+    }
+
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
       navigator.pop();
       return;
     }
-    navigator.pushReplacementNamed(RouteNames.home);
+    navigator.pushReplacementNamed(
+      RouteNames.home,
+      arguments: <String, dynamic>{_openDrawerArg: true},
+    );
   }
 
   @override

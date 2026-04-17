@@ -13,13 +13,31 @@ class DeckBuilderScreen extends StatefulWidget {
 }
 
 class _DeckBuilderScreenState extends State<DeckBuilderScreen> {
+  static const String _openDrawerArg = 'openDrawer';
+  static const String _fromDrawerArg = 'fromDrawer';
+
   void _goBack() {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final openedFromDrawer =
+        args is Map<String, dynamic> && args[_fromDrawerArg] == true;
+    if (openedFromDrawer) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        RouteNames.home,
+        (_) => false,
+        arguments: <String, dynamic>{_openDrawerArg: true},
+      );
+      return;
+    }
+
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
       navigator.pop();
       return;
     }
-    navigator.pushReplacementNamed(RouteNames.home);
+    navigator.pushReplacementNamed(
+      RouteNames.home,
+      arguments: <String, dynamic>{_openDrawerArg: true},
+    );
   }
 
   Future<void> _promptSaveDeck(DeckProvider deck) async {

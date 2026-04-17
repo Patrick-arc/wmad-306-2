@@ -22,42 +22,50 @@ class RouteNames {
 }
 
 class AppRouter {
+  static MaterialPageRoute _route(
+    RouteSettings settings,
+    WidgetBuilder builder,
+  ) {
+    return MaterialPageRoute(settings: settings, builder: builder);
+  }
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RouteNames.splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+        return _route(settings, (_) => const SplashScreen());
       case RouteNames.home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return _route(settings, (_) => const HomeScreen());
       case RouteNames.heroDetail:
         final args = settings.arguments;
         if (args is HeroModel) {
-          return MaterialPageRoute(builder: (_) => HeroDetailScreen(hero: args));
+          return _route(settings, (_) => HeroDetailScreen(hero: args));
         }
 
         if (args is Map<String, dynamic>) {
           final hero = args['hero'] as HeroModel;
           final alreadyInDeck = args['alreadyInDeck'] as bool? ?? false;
-          return MaterialPageRoute(
-            builder: (_) => HeroDetailScreen(
+          return _route(
+            settings,
+            (_) => HeroDetailScreen(
               hero: hero,
               alreadyInDeckFromSource: alreadyInDeck,
             ),
           );
         }
 
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return _route(settings, (_) => const HomeScreen());
       case RouteNames.deckBuilder:
-        return MaterialPageRoute(builder: (_) => const DeckBuilderScreen());
+        return _route(settings, (_) => const DeckBuilderScreen());
       case RouteNames.battle:
-        return MaterialPageRoute(builder: (_) => const BattleScreen());
+        return _route(settings, (_) => const BattleScreen());
       case RouteNames.history:
-        return MaterialPageRoute(builder: (_) => const HistoryScreen());
+        return _route(settings, (_) => const HistoryScreen());
       case RouteNames.profile:
-        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+        return _route(settings, (_) => const ProfileScreen());
       case RouteNames.savedDecks:
-        return MaterialPageRoute(builder: (_) => const SavedDecksScreen());
+        return _route(settings, (_) => const SavedDecksScreen());
       default:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return _route(settings, (_) => const HomeScreen());
     }
   }
 }

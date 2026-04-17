@@ -12,6 +12,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static const String _openDrawerArg = 'openDrawer';
+  static const String _fromDrawerArg = 'fromDrawer';
+
   late final TextEditingController _nameController;
 
   @override
@@ -38,12 +41,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
           onPressed: () {
+            final args = ModalRoute.of(context)?.settings.arguments;
+            final openedFromDrawer =
+                args is Map<String, dynamic> && args[_fromDrawerArg] == true;
+            if (openedFromDrawer) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                RouteNames.home,
+                (_) => false,
+                arguments: <String, dynamic>{_openDrawerArg: true},
+              );
+              return;
+            }
+
             final navigator = Navigator.of(context);
             if (navigator.canPop()) {
               navigator.pop();
               return;
             }
-            navigator.pushReplacementNamed(RouteNames.home);
+            navigator.pushReplacementNamed(
+              RouteNames.home,
+              arguments: <String, dynamic>{_openDrawerArg: true},
+            );
           },
         ),
         title: const Text('Player Profile'),

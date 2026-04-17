@@ -18,12 +18,42 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const String _openDrawerArg = 'openDrawer';
+  static const String _fromDrawerArg = 'fromDrawer';
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final SuperheroApiService _api =
       SuperheroApiService(apiToken: AppConfig.superheroApiToken);
   final TextEditingController _searchController = TextEditingController();
   late Future<List<HeroModel>> _heroesFuture;
   String _searchInput = '';
   Timer? _searchDebounce;
+  Object? _lastHandledDrawerArgs;
+
+  void _openDrawerWhenReady({int attempt = 0}) {
+    if (!mounted) {
+      return;
+    }
+
+    final state = _scaffoldKey.currentState;
+    if (state != null) {
+      if (!state.isDrawerOpen) {
+        state.openDrawer();
+      }
+      return;
+    }
+
+    if (attempt >= 5) {
+      return;
+    }
+
+    unawaited(
+      Future<void>.delayed(
+        const Duration(milliseconds: 90),
+        () => _openDrawerWhenReady(attempt: attempt + 1),
+      ),
+    );
+  }
 
   void _runSearch(String value, {bool immediate = false}) {
     final trimmed = value.trim();
@@ -65,6 +95,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final shouldOpenDrawer =
+        args is Map<String, dynamic> && args[_openDrawerArg] == true;
+    if (!shouldOpenDrawer || identical(_lastHandledDrawerArgs, args)) {
+      return;
+    }
+
+    _lastHandledDrawerArgs = args;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _openDrawerWhenReady();
+    });
+  }
+
+  @override
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
@@ -78,6 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentRoute = ModalRoute.of(context)?.settings.name;
 
     return Scaffold(
+      key: _scaffoldKey,
       drawer: Drawer(
         width: MediaQuery.of(context).size.width.clamp(300.0, 360.0),
         elevation: 0,
@@ -330,7 +381,11 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!mounted) {
           return;
         }
-        Navigator.pushNamed(context, routeName);
+        Navigator.pushReplacementNamed(
+          context,
+          routeName,
+          arguments: <String, dynamic>{_fromDrawerArg: true},
+        );
       }),
     );
   }
