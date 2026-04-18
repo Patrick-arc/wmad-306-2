@@ -6,6 +6,18 @@ import '../../services/database_service.dart';
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
+  String _shortTeamLabel(String value) {
+    final parts = value
+        .split('|')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty) return value;
+    if (parts.length <= 2) return parts.join(' • ');
+    return '${parts.take(2).join(' • ')} +${parts.length - 2}';
+  }
+
   Widget _buildRecordTile(BattleRecord record) {
     final resultText = record.playerWon ? 'Win' : 'Loss';
     final resultColor = record.playerWon ? Colors.green : Colors.red;
@@ -19,7 +31,7 @@ class HistoryScreen extends StatelessWidget {
             style: const TextStyle(color: Colors.white, fontSize: 11),
           ),
         ),
-        title: Text('${record.playerHero} vs ${record.aiHero}'),
+        title: Text('${_shortTeamLabel(record.playerHero)} vs ${_shortTeamLabel(record.aiHero)}'),
         subtitle: Text('Rounds: ${record.roundsPlayed}\nDate: ${record.playedAt}'),
         isThreeLine: true,
       ),

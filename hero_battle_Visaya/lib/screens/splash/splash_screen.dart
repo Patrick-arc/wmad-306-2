@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/player_provider.dart';
 import '../../router/app_router.dart';
 
@@ -17,10 +18,10 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _init() async {
-    //LoadpreferencesintoPlayerProvider before showing any screen
+    // Load preferences into PlayerProvider before showing any screen
     await context.read<PlayerProvider>().loadFromPrefs();
     if (!mounted) return;
-    //Replacesplashsotheusercannot pop back to it
+    // Replace splash so the user cannot pop back to it
     Navigator.pushReplacementNamed(context, RouteNames.home);
   }
 

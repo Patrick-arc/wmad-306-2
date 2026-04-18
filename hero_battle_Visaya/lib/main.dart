@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,8 +12,10 @@ import 'router/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Required for desktop SQLite support (Windows/Linux/macOS).
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+  if (!kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.macOS)) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
@@ -26,10 +26,11 @@ Future<void> main() async {
 class HeroBattleApp extends StatelessWidget {
   const HeroBattleApp({super.key});
 
-  static const Color _primaryViolet = Color(0xFF8B5CF6);
-  static const Color _accentCyan = Color(0xFF38BDF8);
-  static const Color _darkSurface = Color(0xFF131D34);
-  static const Color _darkScaffold = Color(0xFF0A1328);
+  static const Color _accentPurple = Color(0xFF9B5CFF);
+  static const Color _accentBlue = Color(0xFF1EA7FF);
+  static const Color _darkBg = Color(0xFF0A1326);
+  static const Color _darkSurface = Color(0xFF111D33);
+  static const Color _darkCard = Color(0xFF162743);
 
   @override
   Widget build(BuildContext context) {
@@ -56,58 +57,52 @@ class HeroBattleApp extends StatelessWidget {
 
   ThemeData _darkTheme() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: _primaryViolet,
+      seedColor: _accentPurple,
       brightness: Brightness.dark,
     ).copyWith(
-      primary: _primaryViolet,
-      secondary: _accentCyan,
+      primary: _accentPurple,
+      secondary: _accentBlue,
       surface: _darkSurface,
-      surfaceContainerHighest: const Color(0xFF1C2A4A),
-      onSurface: const Color(0xFFE8ECFF),
-      onPrimary: Colors.white,
-      onSecondary: const Color(0xFF021522),
+      onSurface: const Color(0xFFE7F0FF),
+      outline: const Color(0xFF324A72),
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: scheme,
-      scaffoldBackgroundColor: _darkScaffold,
+      scaffoldBackgroundColor: _darkBg,
       appBarTheme: AppBarTheme(
-        backgroundColor: const Color(0xFF0D1831),
+        backgroundColor: _darkSurface,
         foregroundColor: scheme.onSurface,
         elevation: 0,
       ),
       cardTheme: const CardThemeData(
-        color: Color(0xFF1B2640),
+        color: _darkCard,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
-        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF1A2744),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: scheme.outlineVariant),
-        ),
+        fillColor: const Color(0xFF132542),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: scheme.outlineVariant),
+          borderSide: const BorderSide(color: Color(0xFF2D4671)),
+          borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _primaryViolet, width: 1.4),
+          borderSide: const BorderSide(color: _accentPurple, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _primaryViolet,
+          backgroundColor: _accentPurple,
           foregroundColor: Colors.white,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: _accentPurple,
+          foregroundColor: Colors.white,
         ),
       ),
     );
@@ -115,54 +110,52 @@ class HeroBattleApp extends StatelessWidget {
 
   ThemeData _lightTheme() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: _primaryViolet,
+      seedColor: _accentPurple,
       brightness: Brightness.light,
     ).copyWith(
-      primary: const Color(0xFF6D4DFF),
-      secondary: const Color(0xFF0EA5E9),
-      surface: const Color(0xFFF5F7FF),
-      onSurface: const Color(0xFF13213D),
-      onPrimary: Colors.white,
+      primary: const Color(0xFF7E49EE),
+      secondary: const Color(0xFF0F9FF6),
+      surface: const Color(0xFFF4F7FF),
+      onSurface: const Color(0xFF122347),
+      outline: const Color(0xFFC7D5F2),
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: scheme,
-      scaffoldBackgroundColor: const Color(0xFFEFF3FF),
+      scaffoldBackgroundColor: const Color(0xFFEFF4FF),
       appBarTheme: AppBarTheme(
-        backgroundColor: const Color(0xFFE9EEFF),
+        backgroundColor: const Color(0xFFE7EEFF),
         foregroundColor: scheme.onSurface,
         elevation: 0,
       ),
       cardTheme: const CardThemeData(
         color: Colors.white,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
-        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: scheme.outlineVariant),
-        ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: scheme.outlineVariant),
+          borderSide: const BorderSide(color: Color(0xFFD0DCF4)),
+          borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF6D4DFF), width: 1.3),
+          borderSide: const BorderSide(color: Color(0xFF7E49EE), width: 1.5),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6D4DFF),
+          backgroundColor: const Color(0xFF7E49EE),
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF7E49EE),
+          foregroundColor: Colors.white,
         ),
       ),
     );
