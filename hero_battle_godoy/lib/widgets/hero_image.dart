@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-/// A reusable hero image widget that handles 403 errors from superherodb.com
-/// by sending a browser-like User-Agent header, with proper loading/error states.
+/// A reusable hero image widget with proper loading/error states.
 class HeroImage extends StatelessWidget {
   final String imageUrl;
   final BoxFit fit;
@@ -23,13 +22,6 @@ class HeroImage extends StatelessWidget {
     this.errorWidget,
   });
 
-  /// Headers that mimic a browser request — prevents 403 from superherodb.com
-  static const _browserHeaders = {
-    'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
-  };
-
   @override
   Widget build(BuildContext context) {
     if (imageUrl.isEmpty) {
@@ -38,7 +30,6 @@ class HeroImage extends StatelessWidget {
 
     final image = CachedNetworkImage(
       imageUrl: imageUrl,
-      httpHeaders: _browserHeaders,
       fit: fit,
       width: width,
       height: height,

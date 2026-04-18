@@ -1,11 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/hero_model.dart';
 import '../services/superhero_api_service.dart';
+import '../services/prefs_service.dart';
 
 class HeroSearchProvider extends ChangeNotifier {
-  final SuperheroApiService _api = SuperheroApiService(
-    apiToken: '69e1ad2b795146afb3b7b227ba460dbe',
-  );
+  final SuperheroApiService _api = SuperheroApiService();
 
   String _query = '';
   List<HeroModel> _results = [];
@@ -63,5 +62,19 @@ class HeroSearchProvider extends ChangeNotifier {
     _results = [];
     _error = '';
     notifyListeners();
+  }
+
+  Future<void> loadLastSearch() async {
+    final lastQuery = await PrefsService().loadLastSearch();
+    if (lastQuery != null && lastQuery.isNotEmpty) {
+      _query = lastQuery;
+      await searchHeroes(lastQuery);
+    }
+  }
+
+  Future<void> saveLastSearch() async {
+    if (_query.isNotEmpty) {
+      await PrefsService().saveLastSearch(_query);
+    }
   }
 }

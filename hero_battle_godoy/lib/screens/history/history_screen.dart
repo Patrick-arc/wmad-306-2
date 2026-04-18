@@ -15,13 +15,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _historyFuture = DatabaseService().loadHistory();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    setState(() {
+      _historyFuture = DatabaseService().loadHistory();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Battle History')),
+      appBar: AppBar(
+        title: const Text('Battle History'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadHistory,
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
       body: FutureBuilder<List<BattleRecord>>(
         future: _historyFuture,
         builder: (context, snapshot) {
@@ -29,7 +44,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text('Error: ${snapshot.error}', textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadHistory,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
           }
           final records = snapshot.data ?? [];
           if (records.isEmpty) {
@@ -43,14 +72,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 leading: Icon(
                   record.playerWon ? Icons.emoji_events : Icons.close,
                   color: record.playerWon ? Colors.amber : Colors.red,
+                  size: 32,
                 ),
-                title: Text('${record.playerHero} vs ${record.aiHero}'),
-                subtitle: Text('Rounds: ${record.roundsPlayed} | ${record.playedAt}'),
+                title: Text(
+                  '${record.playerHero} vs ${record.aiHero}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text('Rounds: ${record.roundsPlayed} • ${_formatDate(record.playedAt)}'),
+                trailing: Text(
+                  record.playerWon ? 'WIN' : 'LOSS',
+                  style: TextStyle(
+                    color: record.playerWon ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               );
             },
           );
         },
       ),
     );
+  }
+
+  String _formatDate(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return isoDate;
+    }
   }
 }

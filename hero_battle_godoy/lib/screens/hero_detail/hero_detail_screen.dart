@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/hero_model.dart';
+import '../../providers/deck_provider.dart';
 import '../../widgets/hero_image.dart';
 
 class HeroDetailScreen extends StatelessWidget {
@@ -16,11 +18,29 @@ class HeroDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: HeroImage(
-                imageUrl: hero.imageUrl,
+              child: SizedBox(
                 height: 200,
-                fit: BoxFit.contain,
+                child: HeroImage(
+                  imageUrl: hero.reliableImageUrl,
+                  fit: BoxFit.cover,
+                ),
               ),
+            ),
+            const SizedBox(height: 16),
+            Consumer<DeckProvider>(
+              builder: (context, deck, _) {
+                final isInDeck = deck.contains(hero);
+                final isFull = deck.isFull;
+                return ElevatedButton(
+                  onPressed: (isInDeck || isFull) ? null : () => deck.addHero(hero),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  child: Text(
+                    isInDeck ? 'Already in Deck' : (isFull ? 'Deck Full' : 'Add to Deck'),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
             Text('Full Name: ${hero.fullName}', style: const TextStyle(fontSize: 16)),

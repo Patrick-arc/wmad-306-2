@@ -15,11 +15,11 @@ required this.playedAt,
 });
 factory BattleRecord.fromMap(Map<String, dynamic> map) => BattleRecord(
 id: map['id'] as int?,
-playerHero: map['player_hero'] as String,
-aiHero: map['ai_hero'] as String,
-playerWon: (map['player_won'] as int) == 1,
-roundsPlayed: map['rounds_played'] as int,
-playedAt: map['played_at'] as String,
+playerHero: map['player_hero'] as String? ?? map['player1_hero'] as String? ?? 'Unknown',
+aiHero: map['ai_hero'] as String? ?? map['opponent_hero'] as String? ?? map['player2_hero'] as String? ?? 'Unknown',
+playerWon: (map['player_won'] as int? ?? map['player1_won'] as int? ?? 0) == 1,
+roundsPlayed: map['rounds_played'] as int? ?? 0,
+playedAt: map['played_at'] as String? ?? '',
 );
 Map<String, dynamic> toMap() => {
 if (id != null) 'id': id,
