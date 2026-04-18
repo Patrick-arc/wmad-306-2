@@ -41,6 +41,10 @@ class PowerStats {
     'power': power,
     'combat': combat,
   };
+
+  // Total power for battle calculations
+  int get total =>
+      intelligence + strength + speed + durability + power + combat;
 }
 
 class HeroModel {

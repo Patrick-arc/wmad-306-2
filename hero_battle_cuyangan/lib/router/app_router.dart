@@ -6,6 +6,8 @@ import '../screens/hero_detail/hero_detail_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/deck_builder/deck_builder_screen.dart';
 import '../screens/deck_builder/saved_decks_screen.dart';
+import '../screens/battle/battle_screen.dart';
+import '../screens/history/battle_history_screen.dart';
 
 // Route name constants — use these everywhere instead of raw strings
 class RouteNames {
@@ -34,13 +36,9 @@ class AppRouter {
       case RouteNames.savedDecks:
         return MaterialPageRoute(builder: (_) => const SavedDecksScreen());
       case RouteNames.battle:
-        return MaterialPageRoute(
-          builder: (_) => const Placeholder(child: Text('Battle')),
-        );
+        return MaterialPageRoute(builder: (_) => const BattleScreen());
       case RouteNames.history:
-        return MaterialPageRoute(
-          builder: (_) => const Placeholder(child: Text('History')),
-        );
+        return MaterialPageRoute(builder: (_) => const BattleHistoryScreen());
       case RouteNames.profile:
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       default:

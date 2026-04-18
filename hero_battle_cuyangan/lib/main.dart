@@ -6,6 +6,7 @@ import 'providers/deck_provider.dart';
 import 'providers/battle_provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/hero_search_provider.dart';
+import 'providers/battle_history_provider.dart';
 import 'router/app_router.dart';
 
 void main() async {
@@ -30,6 +31,7 @@ class HeroBattleApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DeckProvider()),
         ChangeNotifierProvider(create: (_) => BattleProvider()),
         ChangeNotifierProvider(create: (_) => HeroSearchProvider()),
+        ChangeNotifierProvider(create: (_) => BattleHistoryProvider()),
       ],
       child: Consumer<PlayerProvider>(
         builder: (context, player, _) {

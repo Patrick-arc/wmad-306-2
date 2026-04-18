@@ -63,6 +63,38 @@ class DeckBuilderScreen extends StatelessWidget {
                     ? _buildEmptyState(context)
                     : _buildDeckList(context, deckProvider),
               ),
+
+              // Start Battle Button - Only shows when deck is full
+              if (deckProvider.isFull)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    border: Border(
+                      top: BorderSide(color: Colors.red.withOpacity(0.3)),
+                    ),
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, RouteNames.battle);
+                    },
+                    icon: const Icon(Icons.flash_on),
+                    label: const Text('START BATTLE'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.red.withOpacity(0.5),
+                    ),
+                  ),
+                ),
             ],
           );
         },

@@ -114,6 +114,13 @@ class _HomeScreenState extends State<HomeScreen> {
             primary: true, // Proper status bar integration
             stretch: true,
             actions: [
+              // Battle History button
+              IconButton(
+                icon: const Icon(Icons.history, color: Colors.white),
+                onPressed: () =>
+                    Navigator.pushNamed(context, RouteNames.history),
+                tooltip: 'Battle History',
+              ),
               // Profile button
               IconButton(
                 icon: const Icon(Icons.person, color: Colors.white),
