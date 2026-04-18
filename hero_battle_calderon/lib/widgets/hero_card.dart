@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/hero_model.dart';
-import '../providers/battle_provider.dart';
-import '../providers/hero_search_provider.dart';
 import 'stat_row.dart';
 import 'hero_image.dart';
 
@@ -197,21 +194,6 @@ class HeroCard extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 24),
-                    
-                    // --- Battle Action ---
-                    // ElevatedButton.icon(
-                    //   onPressed: () {
-                    //     Navigator.pop(context);
-                    //     _showBattleDialog(context, hero);
-                    //   },
-                    //   style: ElevatedButton.styleFrom(
-                    //     minimumSize: const Size(double.infinity, 50),
-                    //     backgroundColor: Theme.of(context).colorScheme.primary,
-                    //     foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    //   ),
-                    //   icon: const Icon(Icons.flash_on),
-                    //   label: const Text('QUICK BATTLE', style: TextStyle(fontWeight: FontWeight.bold)),
-                    // ),
                   ],
                 ),
               ),
@@ -229,100 +211,4 @@ class HeroCard extends StatelessWidget {
       dense: true,
     );
   }
-
-  // void _showBattleDialog(BuildContext context, HeroModel playerHero) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return FutureBuilder<HeroModel>(
-  //         future: context.read<HeroSearchProvider>().getRandomHero(),
-  //         builder: (context, snapshot) {
-  //           if (!snapshot.hasData) {
-  //             return const AlertDialog(
-  //               content: SizedBox(
-  //                 height: 100,
-  //                 child: Center(child: CircularProgressIndicator()),
-  //               ),
-  //             );
-  //           }
-  //           final aiHero = snapshot.data!;
-  //           return AlertDialog(
-  //             title: const Text('Quick Battle'),
-  //             content: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 Text('${playerHero.name} VS ${aiHero.name}'),
-  //                 const SizedBox(height: 16),
-  //                 const Text('Ready to fight?'),
-  //               ],
-  //             ),
-  //             actions: [
-  //               TextButton(
-  //                 onPressed: () => Navigator.pop(context),
-  //                 child: const Text('Cancel'),
-  //               ),
-  //               ElevatedButton(
-  //                 onPressed: () {
-  //                   Navigator.pop(context);
-  //                   _startBattle(context, playerHero, aiHero);
-  //                 },
-  //                 child: const Text('Fight!'),
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
-  // void _startBattle(BuildContext context, HeroModel playerHero, HeroModel aiHero) {
-  //   final battleProvider = context.read<BattleProvider>();
-  //   battleProvider.startBattle(playerHero, aiHero).then((_) {
-  //     if (!context.mounted) return;
-  //     showModalBottomSheet(
-  //       context: context,
-  //       isScrollControlled: true,
-  //       builder: (context) {
-  //         final result = battleProvider.lastResult;
-  //         if (result == null) return const SizedBox.shrink();
-  //         return DraggableScrollableSheet(
-  //           initialChildSize: 0.6,
-  //           minChildSize: 0.4,
-  //           maxChildSize: 0.9,
-  //           expand: false,
-  //           builder: (context, scrollController) {
-  //             return Padding(
-  //               padding: const EdgeInsets.all(16.0),
-  //               child: Column(
-  //                 children: [
-  //                   Text(
-  //                     result.playerWon ? 'VICTORY!' : 'DEFEAT',
-  //                     style: TextStyle(
-  //                       fontSize: 24,
-  //                       fontWeight: FontWeight.bold,
-  //                       color: result.playerWon ? Colors.green : Colors.red,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 16),
-  //                   Expanded(
-  //                     child: ListView.builder(
-  //                       controller: scrollController,
-  //                       itemCount: result.log.length,
-  //                       itemBuilder: (context, index) => Text(result.log[index]),
-  //                     ),
-  //                   ),
-  //                   ElevatedButton(
-  //                     onPressed: () => Navigator.pop(context),
-  //                     child: const Text('Close'),
-  //                   ),
-  //                 ],
-  //               ),
-  //             );
-  //           },
-  //         );
-  //       },
-  //     );
-  //   });
-  // }
 }

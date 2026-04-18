@@ -12,6 +12,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notificationsEnabled = true;
+  bool _isLogoutHovered = false;
+  bool _isResetHovered = false;
 
   @override
   void initState() {
@@ -95,60 +97,87 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Account Management'),
-        GestureDetector(
-          onTap: () => _showLogoutDialog(context),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.red.withOpacity(0.5), width: 2),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.logout_rounded, color: Colors.red),
-                SizedBox(width: 12),
-                Text(
-                  'LOGOUT',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    letterSpacing: 1.2,
-                  ),
+        MouseRegion(
+          onEnter: (_) => setState(() => _isLogoutHovered = true),
+          onExit: (_) => setState(() => _isLogoutHovered = false),
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => _showLogoutDialog(context),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: _isLogoutHovered ? Colors.red.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isLogoutHovered ? Colors.red : Colors.red.withValues(alpha: 0.5), 
+                  width: 2
                 ),
-              ],
+                boxShadow: _isLogoutHovered ? [
+                  BoxShadow(color: Colors.red.withValues(alpha: 0.2), blurRadius: 8, spreadRadius: 1)
+                ] : null,
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.logout_rounded, color: Colors.red),
+                  SizedBox(width: 12),
+                  Text(
+                    'LOGOUT',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () => _showResetDialog(context),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.withOpacity(0.5), width: 2),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.delete_forever_rounded, color: Colors.orange),
-                SizedBox(width: 12),
-                Text(
-                  'RESET ALL APP DATA',
-                  style: TextStyle(
-                    color: Colors.orange,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    letterSpacing: 1.2,
+        Tooltip(
+          message: "Was using this for test purposes",
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _isResetHovered = true),
+            onExit: (_) => setState(() => _isResetHovered = false),
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => _showResetDialog(context),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: _isResetHovered ? Colors.orange.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _isResetHovered ? Colors.orange : Colors.orange.withValues(alpha: 0.5), 
+                    width: 2
                   ),
+                  boxShadow: _isResetHovered ? [
+                    BoxShadow(color: Colors.orange.withValues(alpha: 0.2), blurRadius: 8, spreadRadius: 1)
+                  ] : null,
                 ),
-              ],
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.delete_forever_rounded, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Text(
+                      'RESET ALL APP DATA',
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

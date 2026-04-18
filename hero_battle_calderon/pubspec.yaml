@@ -34,3 +34,4 @@ flutter:
     - assets/Attack.png
     - assets/Defend.png
     - assets/Support.png
+    - assets/emptyCard.png

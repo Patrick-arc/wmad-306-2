@@ -26,7 +26,10 @@ class BattleEntity {
   bool receivedActionAdvance = false;
   double tauntValue = 1.0; // Default weight for being targeted
   bool isPerformingAction = false;
+  bool isReceivingAction = false;
+  bool isTakingDamage = false;
   Color performingActionColor = Colors.white;
+  Color receivingActionColor = Colors.white;
 
   BattleEntity({
     required this.hero,
@@ -70,6 +73,7 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
   String? winner;
 
   String currentActionMessage = "";
+  String? currentActionType;
   bool showActionMessage = false;
   bool _recordSaved = false;
 
@@ -178,16 +182,7 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            currentActionMessage,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                          _buildActionMessageText(),
                           const SizedBox(height: 12),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(2),
@@ -219,10 +214,35 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
                 const SizedBox(height: 20),
               ],
             ),
+            Positioned(
+              left: 16,
+              bottom: 100,
+              child: MouseRegion(
+                onEnter: (_) => setState(() => hoveredActionButton = "Guide"),
+                onExit: (_) => setState(() => hoveredActionButton = null),
+                child: AnimatedOpacity(
+                  opacity: hoveredActionButton == "Guide" ? 1.0 : 0.4,
+                  duration: const Duration(milliseconds: 200),
+                  child: FloatingActionButton.small(
+                    onPressed: () => _showHelpDialog(context),
+                    backgroundColor: const Color(0xFF2C2A26),
+                    shape: CircleBorder(side: BorderSide(color: Colors.white.withOpacity(0.1))),
+                    child: const Icon(Icons.help_outline, color: Colors.white70),
+                  ),
+                ),
+              ),
+            ),
             if (isBattleOver) _buildGameOverOverlay(playerName),
           ],
         ),
       ),
+    );
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const BattleHelpDialog(),
     );
   }
 
@@ -243,22 +263,53 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
           children: List.generate(4, (index) {
             final entity = index < entities.length ? entities[index] : null;
             if (entity == null) {
-              return const SizedBox(width: 90, height: 180, child: Center(child: Icon(Icons.help_outline, color: Colors.grey)));
+              return SizedBox(
+                width: 90, 
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.withOpacity(0.3), width: 2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: Image.asset(
+                          'assets/emptyCard.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.help_outline, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const SizedBox(height: 34), // HP bar spacer
+                    const SizedBox(height: 25), // Buff row spacer
+                  ],
+                ),
+              );
             }
 
             final isActing = !isBattleOver && currentActor == entity;
             final isPerforming = entity.isPerformingAction;
+            final isReceiving = entity.isReceivingAction;
             final isTargetable = _isEntityTargetable(entity);
             final isHighlightedByDefend = hoveredActionButton == "Defend" && entity.isPlayer && !entity.isDead;
             final isHovered = hoveredEntity == entity;
             
-            Color borderColor = isActing ? Colors.white : (entity.isDead ? Colors.red : Colors.grey.withAlpha(128));
+            Color borderColor = isActing ? Colors.white : (entity.isDead ? Colors.red : Colors.grey.withValues(alpha: 0.5));
             if (isPerforming) borderColor = entity.performingActionColor;
+            if (isReceiving) borderColor = entity.receivingActionColor;
             
             if (!isBattleOver) {
-              if (isHovered) borderColor = Colors.yellow;
-              else if (isTargetable) borderColor = entity.isPlayer ? Colors.greenAccent : Colors.redAccent;
-              else if (isHighlightedByDefend) borderColor = Colors.blueAccent;
+              if (isHovered) {
+                borderColor = Colors.yellow;
+              } else if (isTargetable) {
+                borderColor = entity.isPlayer ? Colors.greenAccent : Colors.redAccent;
+              } else if (isHighlightedByDefend) {
+                borderColor = Colors.blueAccent;
+              }
             }
 
             final hero = entity.hero;
@@ -288,10 +339,10 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: borderColor,
-                              width: (isActing || isHovered || isTargetable || isHighlightedByDefend || isPerforming) ? 4 : 2,
+                              width: (isActing || isHovered || isTargetable || isHighlightedByDefend || isPerforming || isReceiving) ? 4 : 2,
                             ),
                             borderRadius: BorderRadius.circular(4),
-                            boxShadow: (isTargetable || isHighlightedByDefend || isPerforming) ? [
+                            boxShadow: (isTargetable || isHighlightedByDefend || isPerforming || isReceiving) ? [
                               BoxShadow(color: borderColor.withAlpha(150), blurRadius: 12, spreadRadius: 2)
                             ] : null,
                           ),
@@ -327,20 +378,26 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
                             ),
                           ),
                         ).animate(
-                          target: isPerforming ? 1 : 0,
+                          target: (isPerforming || isReceiving) ? 1 : 0,
                         ).custom(
                           duration: 400.ms,
                           builder: (context, value, child) {
-                            if (!isPerforming) return child;
-                            final glowColor = entity.performingActionColor;
+                            if (!isPerforming && !isReceiving) return child;
+                            final glowColor = isPerforming ? entity.performingActionColor : entity.receivingActionColor;
+                            
+                            // subtle glow for performer, intense for receiver
+                            final blur = isReceiving ? 40.0 : 12.0;
+                            final spread = isReceiving ? 15.0 : 4.0;
+                            final opacity = isReceiving ? 1.0 : 0.6;
+
                             return Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(4),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: glowColor.withOpacity(0.8 * (1 - value)),
-                                    blurRadius: 20 * value,
-                                    spreadRadius: 8 * value,
+                                    color: glowColor.withOpacity(opacity * (1 - value)),
+                                    blurRadius: blur * value,
+                                    spreadRadius: spread * value,
                                   )
                                 ],
                               ),
@@ -355,6 +412,12 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
                           begin: const Offset(1.1, 1.1),
                           end: const Offset(1, 1),
                           curve: Curves.easeInOut,
+                        ).animate(
+                          target: entity.isTakingDamage ? 1 : 0,
+                        ).shake(
+                          duration: 250.ms,
+                          hz: 2,
+                          offset: const Offset(3, 0),
                         ),
                         const SizedBox(height: 4),
                         Padding(
@@ -407,6 +470,60 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
     );
   }
 
+  Widget _buildActionMessageText() {
+    final style = const TextStyle(
+      color: Colors.white,
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+      fontStyle: FontStyle.italic,
+    );
+
+    if (currentActionType == null) {
+      return Text(currentActionMessage, style: style, textAlign: TextAlign.center);
+    }
+
+    String actionWord = "";
+    Color actionColor = Colors.white;
+
+    if (currentActionType == "Attack") {
+      actionWord = "attacks";
+      actionColor = Colors.red;
+    } else if (currentActionType == "Defend") {
+      actionWord = "defends";
+      actionColor = Colors.blue;
+    } else if (currentActionType == "Support") {
+      actionWord = "Support";
+      actionColor = Colors.green;
+    }
+
+    // Try to find the action word in the message
+    // If "attacks" isn't found (e.g. "uses Attack!"), check for "Attack"
+    if (!currentActionMessage.contains(actionWord) && currentActionType == "Attack") {
+      actionWord = "Attack";
+    }
+
+    if (!currentActionMessage.contains(actionWord)) {
+      return Text(currentActionMessage, style: style, textAlign: TextAlign.center);
+    }
+
+    final parts = currentActionMessage.split(actionWord);
+    List<TextSpan> spans = [];
+    
+    for (int i = 0; i < parts.length; i++) {
+      spans.add(TextSpan(text: parts[i], style: style));
+      if (i < parts.length - 1) {
+        spans.add(TextSpan(
+          text: actionWord,
+          style: style.copyWith(color: actionColor, decoration: TextDecoration.underline),
+        ));
+      }
+    }
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(children: spans),
+    );
+  }
 
   Widget _buildBuffIcon(IconData icon, String label, Color color) {
     return Tooltip(
@@ -671,8 +788,11 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
   }
 
   Widget _buildTimelineBar() {
-    // Show top 8 icons in the timeline, filtering out dead ones
-    final displayTimeline = timeline.where((e) => !e.isDead).take(8).toList().reversed.toList();
+    final displayTimeline = timeline.where((e) => !e.isDead).take(8).toList();
+    if (displayTimeline.isEmpty) return const SizedBox(height: 60);
+
+    final currentActor = displayTimeline.first;
+    final futureActors = displayTimeline.skip(1).toList();
     
     return Container(
       width: MediaQuery.of(context).size.width * 0.95,
@@ -681,20 +801,14 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
         color: const Color(0xFF1E1E1E),
         border: Border.all(color: Colors.black, width: 2),
       ),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        reverse: true, // Right is current actor
-        itemCount: displayTimeline.length,
-        itemBuilder: (context, index) {
-          final entity = displayTimeline[index];
-          final isCurrent = index == displayTimeline.length - 1;
-          
-          final item = Container(
+      child: Row(
+        children: [
+          Container(
             width: 50,
             margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             decoration: BoxDecoration(
               border: Border.all(
-                color: isCurrent ? Colors.white : (entity.isPlayer ? Colors.blue : Colors.red),
+                color: Colors.white,
                 width: 2,
               ),
               borderRadius: BorderRadius.circular(4),
@@ -703,43 +817,65 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
               fit: StackFit.expand,
               children: [
                 HeroImage(
-                  urls: [entity.hero.imageUrl, entity.hero.akababImageUrl],
-                  heroId: entity.hero.id,
-                  heroName: entity.hero.name,
-                  searchTerms: entity.hero.aliases,
+                  urls: [currentActor.hero.imageUrl, currentActor.hero.akababImageUrl],
+                  heroId: currentActor.hero.id,
+                  heroName: currentActor.hero.name,
+                  searchTerms: currentActor.hero.aliases,
                   fit: BoxFit.cover,
                   loading: const SizedBox(),
                   error: const Icon(Icons.error, size: 10),
                 ),
-                if (entity.isDead)
-                  Container(color: Colors.black54, child: const Icon(Icons.close, color: Colors.red, size: 20)),
                 Positioned(
                   top: 0,
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     color: Colors.black87,
-                    child: Text(
-                      entity.actionValue.round().toString(),
-                      style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                    child: const Text(
+                      "NOW",
+                      style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
               ],
             ),
-          );
-
-          if (isCurrent) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.arrow_right, color: Colors.white, size: 28),
-                item,
-              ],
-            );
-          }
-          return item;
-        },
+          ),
+          const Icon(Icons.arrow_left, color: Colors.white, size: 28),
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: futureActors.length,
+              itemBuilder: (context, index) {
+                final entity = futureActors[index];
+                return Container(
+                  width: 50,
+                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: entity.isPlayer ? Colors.blue : Colors.red,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      HeroImage(
+                        urls: [entity.hero.imageUrl, entity.hero.akababImageUrl],
+                        heroId: entity.hero.id,
+                        heroName: entity.hero.name,
+                        searchTerms: entity.hero.aliases,
+                        fit: BoxFit.cover,
+                        loading: const SizedBox(),
+                        error: const Icon(Icons.error, size: 10),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -758,6 +894,7 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
       actor.receivedActionAdvance = false;
 
       if (action == "Attack") {
+        currentActionType = "Attack";
         actor.performingActionColor = Colors.red;
         if (target != null) {
           final res = _calculateDamage(actor, target);
@@ -765,6 +902,11 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
           final isCrit = res['isCrit'] as bool;
           
           target.currentHp = math.max(0, target.currentHp - damage);
+          target.isTakingDamage = true;
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) setState(() => target!.isTakingDamage = false);
+          });
+          
           message = "${actor.hero.name} attacks ${target.hero.name} for $damage damage!";
           if (isCrit) message = "CRITICAL HIT! $message";
           if (target.isDead) message += " ${target.hero.name} is defeated!";
@@ -776,33 +918,37 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
           actor.critDamageBonus = 0;
         }
       } else if (action == "Defend") {
+        currentActionType = "Defend";
         actor.performingActionColor = Colors.blue;
         actor.tauntValue = 5.0; // Significant increase in taunt level
-        message = "${actor.hero.name} is on guard and taunting!";
+        message = "${actor.hero.name} defends and is on guard!";
       } else if (action == "Support") {
+        currentActionType = "Support";
         actor.performingActionColor = Colors.green;
         if (target != null) {
+          target.isReceivingAction = true;
+          target.receivingActionColor = Colors.green;
           final highestStat = _getHighestStat(actor.hero);
           if (highestStat == 'Intelligence') {
             target.actionValue *= 0.75;
             target.receivedActionAdvance = true;
-            message = "${actor.hero.name} uses Support! ${target.hero.name}'s turn is pushed forward (Int)!";
+            message = "${actor.hero.name} uses Support! ${target.hero.name}'s turn is pushed forward!";
           } else if (highestStat == 'Strength') {
             target.extraDamage = (actor.hero.powerStats.strength * 0.5).round();
-            message = "${actor.hero.name} uses Support! ${target.hero.name}'s next attack is empowered (Str)!";
+            message = "${actor.hero.name} uses Support! ${target.hero.name}'s next attack is empowered!";
           } else if (highestStat == 'Speed') {
             target.currentSpeed = (target.hero.powerStats.speed * 1.3).round();
             target.speedBuffTurns = 2;
-            message = "${actor.hero.name} uses Support! ${target.hero.name}'s Speed increased (Spd)!";
+            message = "${actor.hero.name} uses Support! ${target.hero.name}'s Speed increased!";
           } else if (highestStat == 'Durability') {
             target.damageReductionHits = 2;
-            message = "${actor.hero.name} uses Support! ${target.hero.name} is fortified (Dur)!";
+            message = "${actor.hero.name} uses Support! ${target.hero.name} is fortified!";
           } else if (highestStat == 'Power') {
             target.critChanceBonus = 0.5;
-            message = "${actor.hero.name} uses Support! ${target.hero.name}'s Crit Chance boosted (Pow)!";
+            message = "${actor.hero.name} uses Support! ${target.hero.name}'s Crit Chance boosted!";
           } else if (highestStat == 'Combat') {
             target.critDamageBonus = 0.25;
-            message = "${actor.hero.name} uses Support! ${target.hero.name}'s Crit Damage boosted (Com)!";
+            message = "${actor.hero.name} uses Support! ${target.hero.name}'s Crit Damage boosted!";
           }
         }
       }
@@ -838,6 +984,8 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
       if (mounted) {
         setState(() {
           actor.isPerformingAction = false;
+          for (var e in playerEntities) { e.isReceivingAction = false; }
+          for (var e in aiEntities) { e.isReceivingAction = false; }
           showActionMessage = false;
         });
         if (!isBattleOver) _processNextTurn();
@@ -958,15 +1106,17 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
   void _checkBattleEnd() {
     if (isBattleOver) return;
 
+    final playerName = context.read<PlayerProvider>().playerName;
+
     if (playerEntities.every((e) => e.isDead)) {
       setState(() {
         isBattleOver = true;
-        winner = "AI";
+        winner = widget.aiName;
       });
     } else if (aiEntities.every((e) => e.isDead)) {
       setState(() {
         isBattleOver = true;
-        winner = "Player";
+        winner = playerName;
       });
     }
 
@@ -976,7 +1126,7 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
         aiName: widget.aiName,
         playerTeam: playerEntities.map((e) => e.hero.name).toList(),
         aiTeam: aiEntities.map((e) => e.hero.name).toList(),
-        playerWon: winner == "Player",
+        playerWon: winner == playerName,
         roundsPlayed: 0, // Not tracked yet, but field exists
         playedAt: DateTime.now().toIso8601String(),
       );
@@ -985,7 +1135,7 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
   }
 
   Widget _buildGameOverOverlay(String playerName) {
-    final isPlayerWinner = winner == "Player";
+    final isPlayerWinner = winner == playerName;
     return Container(
       color: Colors.black87,
       width: double.infinity,
@@ -1004,7 +1154,17 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
           ),
           const SizedBox(height: 20),
           Text(
-            isPlayerWinner ? "$playerName, your team has conquered the enemies!" : "The AI team was too strong this time.",
+            "$winner HAS WON THE BATTLE!",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isPlayerWinner ? "Your team has conquered the enemies!" : "The enemy team was too strong this time.",
             style: const TextStyle(color: Colors.white70, fontSize: 18),
             textAlign: TextAlign.center,
           ),
@@ -1020,6 +1180,180 @@ class _BattleScreenState extends State<BattleScreen> with TickerProviderStateMix
             child: const Text("RETURN TO HOME"),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class BattleHelpDialog extends StatelessWidget {
+  const BattleHelpDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1E1E1E),
+      title: const Row(
+        children: [
+          Icon(Icons.help_outline, color: Colors.blueAccent),
+          SizedBox(width: 10),
+          Text("Battle Guide", style: TextStyle(color: Colors.white)),
+        ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildObjectiveSection(),
+              const Divider(color: Colors.white24, height: 32),
+              const Text("Battle Mechanics", style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              const SizedBox(height: 8),
+              _buildExpansionHelpItem(
+                "Attack", 
+                Icons.fireplace, 
+                Colors.redAccent, 
+                "Hit an enemy to lower their health! The higher your hero's Attack power and the lower the enemy's Defense, the more damage you'll deal."
+              ),
+              _buildExpansionHelpItem(
+                "Defend", 
+                Icons.shield, 
+                Colors.blueAccent, 
+                "Increases 'Taunt' value, making enemies more likely to target this hero. Also grants damage reduction for one turn."
+              ),
+              _buildHelpSupportItem(),
+              const Divider(color: Colors.white24, height: 32),
+              _buildHelpItem(
+                "Action Order Bar", 
+                Icons.view_headline, 
+                Colors.yellow, 
+                "See who goes next! The hero on the left is acting NOW. Upcoming heroes move from right to left towards the turn arrow."
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("GOT IT", style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildObjectiveSection() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Goal", style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+        SizedBox(height: 4),
+        Text(
+          "Knock out all 4 heroes on the enemy team to win! Pick the best moves to beat them.",
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        SizedBox(height: 12),
+        Text("How to Win", style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(
+          "You win when every enemy hero runs out of health. If all your heroes get knocked out first, you lose.",
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExpansionHelpItem(String title, IconData icon, Color color, String description) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: ExpansionTile(
+          iconColor: color,
+          collapsedIconColor: color,
+          leading: Icon(icon, color: color),
+          title: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+          childrenPadding: const EdgeInsets.all(12),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(description, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHelpItem(String title, IconData icon, Color color, String description) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(description, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHelpSupportItem() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: ExpansionTile(
+          iconColor: Colors.greenAccent,
+          collapsedIconColor: Colors.greenAccent,
+          leading: const Icon(Icons.auto_awesome, color: Colors.greenAccent),
+          title: const Text("Support", style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+          childrenPadding: const EdgeInsets.all(12),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "How to apply: Select 'Support' then tap an ally hero to buff them.",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "The buff type depends on the ACTOR's highest power stat:",
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            _buildStatBuff("Intelligence", "Action Advance (Next turn comes sooner)"),
+            _buildStatBuff("Strength", "Damage Boost (Next attack deals more dmg)"),
+            _buildStatBuff("Speed", "SPD Buff (Higher speed for 2 turns)"),
+            _buildStatBuff("Durability", "Shield/DR (Reduced damage for 2 hits)"),
+            _buildStatBuff("Power", "Crit Chance (50% more likely to crit)"),
+            _buildStatBuff("Combat", "Crit Damage (25% more critical damage)"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatBuff(String stat, String effect) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(text: "• $stat: ", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+            TextSpan(text: effect, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          ],
+        ),
       ),
     );
   }

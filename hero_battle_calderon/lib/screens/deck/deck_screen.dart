@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/hero_model.dart';
@@ -488,6 +489,7 @@ class HeroSelectionPopover extends StatefulWidget {
 class _HeroSelectionPopoverState extends State<HeroSelectionPopover> {
   final List<HeroModel> _selectedHeroes = [];
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -500,7 +502,17 @@ class _HeroSelectionPopoverState extends State<HeroSelectionPopover> {
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        context.read<HeroSelectionProvider>().search(query);
+      }
+    });
   }
 
   @override
@@ -551,12 +563,21 @@ class _HeroSelectionPopoverState extends State<HeroSelectionPopover> {
           hintText: 'Search superheroes...',
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: () => context.read<HeroSelectionProvider>().search(_searchController.text),
-          ),
+          suffixIcon: _searchController.text.isNotEmpty 
+            ? IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  _searchController.clear();
+                  context.read<HeroSelectionProvider>().search('');
+                },
+              )
+            : const Icon(Icons.search_off, color: Colors.grey),
         ),
-        onSubmitted: (value) => context.read<HeroSelectionProvider>().search(value),
+        onChanged: _onSearchChanged,
+        onSubmitted: (value) {
+          _debounce?.cancel();
+          context.read<HeroSelectionProvider>().search(value);
+        },
       ),
     );
   }
@@ -573,68 +594,68 @@ class _HeroSelectionPopoverState extends State<HeroSelectionPopover> {
               scrollDirection: Axis.horizontal,
               itemCount: _selectedHeroes.length,
               itemBuilder: (context, index) {
-                final hero = _selectedHeroes[index];
-                return Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: 60,
-                          height: 80,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              HeroImage(
-                                urls: [hero.imageUrl, hero.akababImageUrl],
-                                heroId: hero.id,
-                                heroName: hero.name,
-                                searchTerms: hero.aliases,
-                                fit: BoxFit.cover,
-                                loading: Container(color: Colors.grey),
-                                error: const Icon(Icons.error),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
-                                  color: Colors.black54,
-                                  child: Text(
-                                    hero.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                    final hero = _selectedHeroes[index];
+                    return Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              width: 60,
+                              height: 80,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  HeroImage(
+                                    urls: [hero.imageUrl, hero.akababImageUrl],
+                                    heroId: hero.id,
+                                    heroName: hero.name,
+                                    searchTerms: hero.aliases,
+                                    fit: BoxFit.cover,
+                                    loading: Container(color: Colors.grey),
+                                    error: const Icon(Icons.error),
                                   ),
-                                ),
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 2),
+                                      color: Colors.black54,
+                                      child: Text(
+                                        hero.name,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedHeroes.removeAt(index)),
-                        child: Container(
-                          decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                          child: const Icon(Icons.close, size: 16, color: Colors.white),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedHeroes.removeAt(index)),
+                            child: Container(
+                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                              child: const Icon(Icons.close, size: 16, color: Colors.white),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+                      ],
+                    );
+                  },
+                ),
           ),
         ],
       ),
@@ -645,7 +666,25 @@ class _HeroSelectionPopoverState extends State<HeroSelectionPopover> {
     return Consumer<HeroSelectionProvider>(
       builder: (context, selectionProvider, child) {
         if (selectionProvider.isLoading) return const Center(child: CircularProgressIndicator());
+        
         final results = selectionProvider.results;
+        
+        if (results.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.search_off, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  'No results for "${selectionProvider.currentQuery}"',
+                  style: const TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+              ],
+            ),
+          );
+        }
+
         return GridView.builder(
           controller: scrollController,
           padding: const EdgeInsets.all(16),

@@ -11,10 +11,12 @@ class HeroSelectionProvider extends ChangeNotifier {
   List<HeroModel> _searchResults = [];
   bool _isLoading = false;
   String _error = '';
+  String _currentQuery = '';
 
-  List<HeroModel> get results => _searchResults.isEmpty ? _fullDatabase.take(50).toList() : _searchResults;
+  List<HeroModel> get results => _currentQuery.isEmpty ? _fullDatabase.take(50).toList() : _searchResults;
   bool get isLoading => _isLoading;
   String get error => _error;
+  String get currentQuery => _currentQuery;
 
   Future<void> initialize() async {
     if (_fullDatabase.isNotEmpty) return;
@@ -31,8 +33,8 @@ class HeroSelectionProvider extends ChangeNotifier {
   }
 
   Future<void> search(String query) async {
-    final trimmed = query.trim();
-    if (trimmed.isEmpty) {
+    _currentQuery = query.trim();
+    if (_currentQuery.isEmpty) {
       _searchResults = [];
       notifyListeners();
       return;
@@ -43,12 +45,25 @@ class HeroSelectionProvider extends ChangeNotifier {
 
     try {
       if (_fullDatabase.isEmpty) {
-        _fullDatabase = await _api.fetchAllHeroes();
+        await initialize();
       }
+      
       _searchResults = _fullDatabase
-          .where((h) => h.name.toLowerCase().contains(trimmed.toLowerCase()) || 
-                       h.fullName.toLowerCase().contains(trimmed.toLowerCase()))
+          .where((h) => h.name.toLowerCase().contains(_currentQuery.toLowerCase()) || 
+                       h.fullName.toLowerCase().contains(_currentQuery.toLowerCase()))
           .toList();
+
+      // If local search fails to find anything, try API search
+      if (_searchResults.isEmpty && _currentQuery.length > 2) {
+        try {
+          final apiResults = await _api.searchHeroes(_currentQuery);
+          if (apiResults.isNotEmpty) {
+            _searchResults = apiResults;
+          }
+        } catch (_) {
+          // Ignore API errors and keep local empty results
+        }
+      }
     } catch (e) {
       _error = e.toString();
     } finally {
