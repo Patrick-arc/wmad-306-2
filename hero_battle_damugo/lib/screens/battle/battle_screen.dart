@@ -15,6 +15,7 @@ import '../../services/superhero_api_service.dart';
 import '../../widgets/battle_hero_card.dart';
 import '../../widgets/hero_image.dart';
 import '../../widgets/hp_bar.dart';
+import 'ban_phase_screen.dart';
 
 class BattleScreen extends StatefulWidget {
   const BattleScreen({super.key});
@@ -33,6 +34,8 @@ class _BattleScreenState extends State<BattleScreen>
   );
 
   Future<List<HeroModel>>? _aiTeamFuture;
+  Future<List<HeroModel>>? _banPoolFuture;
+  List<HeroModel> _currentAiTeam = [];
   Timer? _autoAdvanceTimer;
   Timer? _impactFxTimer;
   AnimationController? _clashController;
@@ -54,6 +57,8 @@ class _BattleScreenState extends State<BattleScreen>
   bool _manualNextTurnRequired = false;
   bool _isResultOverlayDismissed = false;
   bool _showCinematicIntro = false;
+  bool _isInBanningPhase = false;
+  bool _isPreparingBanPhase = false;
   _BattleImpactFx? _currentImpactFx;
   String _roundFeedback = '';
   int _arenaBackgroundIndex = 0;
@@ -127,6 +132,35 @@ class _BattleScreenState extends State<BattleScreen>
     _goHome();
   }
 
+  void _onBanningPhaseComplete() {
+    final provider = context.read<BattleProvider>();
+    final deck = context.read<DeckProvider>();
+    
+    setState(() {
+      _isInBanningPhase = false;
+    });
+
+    // After banning is complete, start the actual battle with filtered teams
+    Future<void>.delayed(const Duration(milliseconds: 300), () async {
+      if (!mounted) {
+        return;
+      }
+
+      _winRecorded = false;
+      provider.startBattle(
+        playerTeam: deck.deck,
+        aiTeam: _currentAiTeam,
+        playerStartingIndex: _preBattlePlayerIndex,
+      );
+      _manualNextTurnRequired = false;
+      await _playCinematicIntro();
+      if (!mounted) {
+        return;
+      }
+      _scheduleAutoAdvance(provider);
+    });
+  }
+
   bool _openedFromDrawer() {
     final args = ModalRoute.of(context)?.settings.arguments;
     return args is Map<String, dynamic> && args[_fromDrawerArg] == true;
@@ -158,6 +192,7 @@ class _BattleScreenState extends State<BattleScreen>
       setState(() {
         context.read<BattleProvider>().reset();
         _aiTeamFuture = _loadAiTeam();
+        _banPoolFuture = _loadBanPool();
         _isScreenReady = true;
       });
     });
@@ -820,6 +855,20 @@ class _BattleScreenState extends State<BattleScreen>
     return _api.fetchRandomHeroes(count: 5);
   }
 
+  Future<List<HeroModel>> _loadBanPool() async {
+    final pool = await _api.fetchRandomHeroes(count: 20);
+    pool.sort((a, b) => _heroScore(b).compareTo(_heroScore(a)));
+    return pool;
+  }
+
+  int _heroScore(HeroModel hero) {
+    return hero.maxHp +
+        hero.attack +
+        hero.specialAttack +
+        hero.defense +
+        hero.initiative;
+  }
+
   void _cancelAutoAdvanceTimer({bool resetCountdown = true}) {
     _autoAdvanceTimer?.cancel();
     _autoAdvanceTimer = null;
@@ -1119,58 +1168,148 @@ class _BattleScreenState extends State<BattleScreen>
   }
 
   Widget _buildHiddenOpponentCard() {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = isDark ? const Color(0xFFE8D6AA) : const Color(0xFF8E6A2A);
+
     return Card(
-      elevation: 4,
+      elevation: isDark ? 8 : 4,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.purple.shade700, width: 3),
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: accent.withValues(alpha: isDark ? 0.5 : 0.38),
+          width: 1.6,
+        ),
       ),
       child: SizedBox(
         width: 260,
         height: 340,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: <Color>[
-                Colors.deepPurple.shade900,
-                const Color(0xFF1A1630),
-                Colors.black,
-              ],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.help_center_rounded,
-                  size: 74,
-                  color: Colors.white.withValues(alpha: 0.75),
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? <Color>[
+                          const Color(0xFF211B33),
+                          const Color(0xFF151124),
+                          const Color(0xFF0D0B16),
+                        ]
+                      : <Color>[
+                          scheme.surfaceContainerHigh,
+                          scheme.surface,
+                          scheme.surfaceContainerLow,
+                        ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  'UNKNOWN',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
+              ),
+            ),
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: isDark ? 0.18 : 0.13),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: accent.withValues(alpha: isDark ? 0.5 : 0.34),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(
+                          Icons.lock_rounded,
+                          size: 14,
+                          color: accent.withValues(alpha: 0.95),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'CLASSIFIED',
+                          style: TextStyle(
+                            color: accent.withValues(alpha: 0.95),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Container(
+                    width: 92,
+                    height: 92,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: isDark ? 0.34 : 0.08),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: accent.withValues(alpha: isDark ? 0.35 : 0.24),
+                        width: 1.3,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.person_search_rounded,
+                      size: 52,
+                      color: scheme.onSurface.withValues(alpha: isDark ? 0.85 : 0.72),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'OPPONENT HIDDEN',
+                    style: TextStyle(
+                      color: scheme.onSurface.withValues(alpha: 0.92),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: Text(
+                      'Enemy opening hero is concealed until battle initialization.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: scheme.onSurface.withValues(alpha: 0.66),
+                        fontSize: 12.5,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildHiddenOpponentStrip({required bool alignRight}) {
-    final titleColor = Colors.white.withValues(alpha: 0.94);
-    final secondaryColor = Colors.white.withValues(alpha: 0.72);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = isDark ? const Color(0xFFE8D6AA) : const Color(0xFF8E6A2A);
+    final titleColor = scheme.onSurface.withValues(alpha: 0.94);
+    final secondaryColor = scheme.onSurface.withValues(alpha: 0.72);
 
     return Column(
       crossAxisAlignment: alignRight
@@ -1203,9 +1342,13 @@ class _BattleScreenState extends State<BattleScreen>
           height: 124,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xAA171321),
+            color: isDark
+                ? const Color(0xAA171321)
+                : scheme.surfaceContainerLow.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+            border: Border.all(
+              color: accent.withValues(alpha: isDark ? 0.34 : 0.24),
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1234,6 +1377,91 @@ class _BattleScreenState extends State<BattleScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBannedHeroBadge({
+    required HeroModel hero,
+    required Color accent,
+  }) {
+    return SizedBox(
+      width: 38,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          SizedBox(
+            width: 38,
+            height: 38,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                ClipOval(
+                  child: HeroImage(
+                    urls: hero.displayImageCandidates,
+                    heroId: hero.id,
+                    heroName: hero.name,
+                    searchTerms: hero.imageSearchTerms,
+                    fit: BoxFit.cover,
+                    loading: const ColoredBox(
+                      color: Color(0xFF221C31),
+                      child: Center(
+                        child: SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(strokeWidth: 1.4),
+                        ),
+                      ),
+                    ),
+                    error: const ColoredBox(
+                      color: Color(0xFF221C31),
+                      child: Icon(Icons.broken_image, color: Colors.white24),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: <Color>[
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.18),
+                          Colors.black.withValues(alpha: 0.78),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: accent.withValues(alpha: 0.85),
+                        width: 1.1,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 1,
+                  right: 1,
+                  child: Icon(
+                    Icons.block_rounded,
+                    color: accent,
+                    size: 9,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            hero.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 7,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1360,6 +1588,76 @@ class _BattleScreenState extends State<BattleScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBannedHeroCornerStrip({
+    required String label,
+    required List<HeroModel> heroes,
+    required Color accent,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(left: 2, bottom: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.92),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              shadows: const <Shadow>[
+                Shadow(
+                  blurRadius: 6,
+                  color: Colors.black,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: heroes
+              .map(
+                (hero) => Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: _buildBannedHeroBadge(hero: hero, accent: accent),
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBannedHeroesTopRow(BattleProvider battle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          if (battle.playerBanCount > 0)
+            _buildBannedHeroCornerStrip(
+              label: 'You banned',
+              heroes: battle.playerBannedHeroModels,
+              accent: const Color(0xFFFF6B6B),
+            )
+          else
+            const SizedBox.shrink(),
+          if (battle.aiBanCount > 0)
+            _buildBannedHeroCornerStrip(
+              label: 'Opponent banned',
+              heroes: battle.aiBannedHeroModels,
+              accent: const Color(0xFF58A6FF),
+            )
+          else
+            const SizedBox.shrink(),
+        ],
+      ),
     );
   }
 
@@ -1506,6 +1804,8 @@ class _BattleScreenState extends State<BattleScreen>
     _cancelAutoAdvanceTimer();
     setState(() {
       _aiTeamFuture = _loadAiTeam();
+      _banPoolFuture = _loadBanPool();
+      _currentAiTeam = [];
       _winRecorded = false;
       _manualNextTurnRequired = false;
       _isResultOverlayDismissed = false;
@@ -1764,8 +2064,12 @@ class _BattleScreenState extends State<BattleScreen>
           ),
         ],
       ),
-      body: Stack(
-        children: <Widget>[
+      body: _isInBanningPhase
+          ? BanPhaseScreen(
+              onBanningComplete: _onBanningPhaseComplete,
+            )
+          : Stack(
+              children: <Widget>[
           Positioned.fill(
             child: Image.asset(
               _arenaBackgrounds[_arenaBackgroundIndex],
@@ -1871,6 +2175,11 @@ class _BattleScreenState extends State<BattleScreen>
                         ),
                         const SizedBox(height: 12),
                       ],
+                      if (battle.playerBanCount > 0 || battle.aiBanCount > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: _buildBannedHeroesTopRow(battle),
+                        ),
                       AnimatedBuilder(
                         animation: Listenable.merge(<Listenable>[
                           _clashController!,
@@ -1899,12 +2208,12 @@ class _BattleScreenState extends State<BattleScreen>
                               : 0.0;
 
                           return SizedBox(
-                            height: 300,
+                            height: 320,
                             child: Stack(
                               alignment: Alignment.center,
                               children: <Widget>[
                                 Positioned(
-                                  top: 0,
+                                  top: 8,
                                   left: 0,
                                   right: 0,
                                   child: _buildRoundFeedbackWidget(
@@ -1915,7 +2224,7 @@ class _BattleScreenState extends State<BattleScreen>
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Transform.translate(
-                                    offset: Offset(introLeftOffset, 10),
+                                    offset: Offset(introLeftOffset, 18),
                                     child: Opacity(
                                       opacity: introProgress,
                                       child: _buildAnimatedFighterCard(
@@ -1939,7 +2248,7 @@ class _BattleScreenState extends State<BattleScreen>
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: Transform.translate(
-                                    offset: Offset(introRightOffset, 10),
+                                    offset: Offset(introRightOffset, 18),
                                     child: hasStarted
                                         ? Opacity(
                                             opacity: introProgress,
@@ -1964,7 +2273,7 @@ class _BattleScreenState extends State<BattleScreen>
                                 ),
                                 if (_showCinematicIntro && hasStarted)
                                   Positioned(
-                                    top: 86,
+                                    top: 88,
                                     left: 0,
                                     right: 0,
                                     child: IgnorePointer(
@@ -2136,8 +2445,8 @@ class _BattleScreenState extends State<BattleScreen>
                       ),
                       const SizedBox(height: 10),
                       if (!(hasStarted && _showCinematicIntro))
-                        _BattleGlassPanel(
-                          padding: const EdgeInsets.all(10),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
                           child: Wrap(
                             spacing: 10,
                             runSpacing: 10,
@@ -2153,21 +2462,41 @@ class _BattleScreenState extends State<BattleScreen>
                                   ),
                                   onPressed: !hasStarted && canStartBattle
                                       ? () async {
-                                          _winRecorded = false;
-                                          final provider = context
-                                              .read<BattleProvider>();
-                                          provider.startBattle(
-                                            playerTeam: deck.deck,
-                                            aiTeam: aiTeam,
-                                            playerStartingIndex:
-                                                _preBattlePlayerIndex,
-                                          );
-                                          _manualNextTurnRequired = false;
-                                          await _playCinematicIntro();
-                                          if (!mounted) {
-                                            return;
+                                          setState(() {
+                                            _isPreparingBanPhase = true;
+                                          });
+
+                                          try {
+                                            _winRecorded = false;
+                                            _currentAiTeam = aiTeam;
+                                            final provider = context
+                                                .read<BattleProvider>();
+                                            final banPool =
+                                                await (_banPoolFuture ??
+                                                    _loadBanPool());
+                                            if (!mounted) {
+                                              return;
+                                            }
+
+                                            provider.startBanningPhase(
+                                              playerTeam: deck.deck,
+                                              aiTeam: aiTeam,
+                                              banPool: <HeroModel>[
+                                                ...deck.deck,
+                                                ...aiTeam,
+                                                ...banPool,
+                                              ],
+                                            );
+                                            setState(() {
+                                              _isInBanningPhase = true;
+                                            });
+                                          } finally {
+                                            if (mounted) {
+                                              setState(() {
+                                                _isPreparingBanPhase = false;
+                                              });
+                                            }
                                           }
-                                          _scheduleAutoAdvance(provider);
                                         }
                                       : null,
                                   child: const Text('Start Battle'),
@@ -2224,7 +2553,7 @@ class _BattleScreenState extends State<BattleScreen>
                             ],
                           ),
                         ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 18),
                       if (hasStarted && !battle.isBattleOver)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
@@ -2339,8 +2668,66 @@ class _BattleScreenState extends State<BattleScreen>
           ),
           if (battle.isBattleOver && !_isResultOverlayDismissed)
             _buildBattleResultOverlay(battle),
+          if (_isPreparingBanPhase)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.72),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF17122A).withValues(alpha: 0.96),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFFB56DFF).withValues(alpha: 0.85),
+                          width: 1.4,
+                        ),
+                        boxShadow: const <BoxShadow>[
+                          BoxShadow(
+                            color: Color(0xAA000000),
+                            blurRadius: 20,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const SizedBox(
+                            width: 34,
+                            height: 34,
+                            child: CircularProgressIndicator(strokeWidth: 3),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Preparing banning phase...',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.95),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Loading stronger heroes and matchup pool',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.68),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
-      ),
+              ),
     );
   }
 }

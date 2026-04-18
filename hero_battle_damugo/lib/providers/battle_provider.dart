@@ -9,6 +9,7 @@ import '../services/database_service.dart';
 
 class BattleProvider extends ChangeNotifier {
   static const int _switchCooldownDurationSeconds = 6;
+  static const int _bansPerSide = 3;
 
   List<HeroModel> _playerTeam = <HeroModel>[];
   List<HeroModel> _aiTeam = <HeroModel>[];
@@ -26,6 +27,14 @@ class BattleProvider extends ChangeNotifier {
   bool _playerWon = false;
   List<String> _battleLog = <String>[];
   String? _roundWinner;
+
+  // Banning phase variables
+  bool _isInBanningPhase = false;
+  List<HeroModel> _availableHeroesForBanning = <HeroModel>[];
+  Set<String> _playerBannedHeroes = <String>{};
+  Set<String> _aiEnemyBannedHeroes = <String>{};
+  bool _isPlayerTurnToBan = true;
+  int _banRound = 0;
 
   List<HeroModel> get playerTeam => List.unmodifiable(_playerTeam);
   List<HeroModel> get aiTeam => List.unmodifiable(_aiTeam);
@@ -51,8 +60,160 @@ class BattleProvider extends ChangeNotifier {
   bool get canSwitchPlayerHero =>
       !_isBattleOver && _playerAliveCount > 1 && _playerActiveIndex >= 0;
 
+  // Banning phase getters
+  bool get isInBanningPhase => _isInBanningPhase;
+  List<HeroModel> get availableHeroesForBanning =>
+      List.unmodifiable(_availableHeroesForBanning);
+  Set<String> get playerBannedHeroes =>
+      <String>{..._playerBannedHeroes};
+  Set<String> get aiEnemyBannedHeroes =>
+      <String>{..._aiEnemyBannedHeroes};
+  List<HeroModel> get playerBannedHeroModels => _heroesFromNames(
+        _playerBannedHeroes,
+      );
+  List<HeroModel> get aiBannedHeroModels => _heroesFromNames(
+        _aiEnemyBannedHeroes,
+      );
+  bool get isPlayerTurnToBan => _isPlayerTurnToBan;
+  int get banRound => _banRound;
+  int get playerBanCount => _playerBannedHeroes.length;
+  int get aiBanCount => _aiEnemyBannedHeroes.length;
+  int get bansPerSide => _bansPerSide;
+
   int get _playerAliveCount => _playerTeamHp.where((hp) => hp > 0).length;
   int get _aiAliveCount => _aiTeamHp.where((hp) => hp > 0).length;
+
+  void startBanningPhase({
+    required List<HeroModel> playerTeam,
+    required List<HeroModel> aiTeam,
+    List<HeroModel>? banPool,
+  }) {
+    final sourcePool = banPool ?? <HeroModel>[...playerTeam, ...aiTeam];
+    final uniqueHeroes = <String, HeroModel>{};
+    for (final hero in sourcePool) {
+      uniqueHeroes[hero.name.toLowerCase()] = hero;
+    }
+
+    _availableHeroesForBanning = uniqueHeroes.values.toList()
+      ..sort((a, b) => _heroScore(b).compareTo(_heroScore(a)));
+    _playerBannedHeroes = <String>{};
+    _aiEnemyBannedHeroes = <String>{};
+    _isPlayerTurnToBan = true;
+    _banRound = 0;
+    _isInBanningPhase = true;
+    _battleLog = <String>[
+      'Banning phase started!',
+      'Each side can ban up to $_bansPerSide heroes.',
+    ];
+    notifyListeners();
+  }
+
+  bool playerBanHero(String heroName) {
+    if (!_isInBanningPhase || !_isPlayerTurnToBan) {
+      return false;
+    }
+    if (_playerBannedHeroes.length >= _bansPerSide) {
+      return false;
+    }
+    if (_playerBannedHeroes.contains(heroName)) {
+      return false;
+    }
+
+    _playerBannedHeroes.add(heroName);
+    _battleLog = <String>[
+      ..._battleLog,
+      'You banned ${_getHeroDisplayName(heroName)}',
+    ];
+
+    // Switch turn if player is done or AI needs to ban
+    if (_playerBannedHeroes.length < _bansPerSide) {
+      _isPlayerTurnToBan = false;
+      _scheduleAiBan();
+    } else {
+      _isPlayerTurnToBan = false;
+      _scheduleAiBan();
+    }
+
+    notifyListeners();
+    return true;
+  }
+
+  void _scheduleAiBan() {
+    Future<void>.delayed(const Duration(milliseconds: 800), () {
+      _aiAutoBan();
+    });
+  }
+
+  void _aiAutoBan() {
+    if (!_isInBanningPhase || _isPlayerTurnToBan) {
+      return;
+    }
+
+    if (_aiEnemyBannedHeroes.length >= _bansPerSide) {
+      // AI is done banning
+      _checkIfBanningPhaseComplete();
+      return;
+    }
+
+    // AI picks a random strong hero to ban
+    final availableToBan = _availableHeroesForBanning
+        .where((hero) =>
+            !_aiEnemyBannedHeroes.contains(hero.name) &&
+            !_playerBannedHeroes.contains(hero.name))
+        .toList();
+
+    if (availableToBan.isEmpty) {
+      _checkIfBanningPhaseComplete();
+      return;
+    }
+
+    // AI bans a strong hero (highest score)
+    final heroToBan = availableToBan.reduce((a, b) =>
+        _heroScore(a) > _heroScore(b) ? a : b);
+    
+    _aiEnemyBannedHeroes.add(heroToBan.name);
+    _battleLog = <String>[
+      ..._battleLog,
+      'Opponent banned ${heroToBan.name}',
+    ];
+
+    notifyListeners();
+
+    // Check if AI should ban more
+    if (_aiEnemyBannedHeroes.length < _bansPerSide &&
+        _playerBannedHeroes.length < _bansPerSide) {
+      _isPlayerTurnToBan = true;
+      notifyListeners();
+    } else if (_aiEnemyBannedHeroes.length >= _bansPerSide &&
+        _playerBannedHeroes.length >= _bansPerSide) {
+      _checkIfBanningPhaseComplete();
+    } else {
+      // AI bans again if player hasn't filled quota
+      _scheduleAiBan();
+    }
+  }
+
+  void _checkIfBanningPhaseComplete() {
+    if (_playerBannedHeroes.length >= _bansPerSide &&
+        _aiEnemyBannedHeroes.length >= _bansPerSide) {
+      _isInBanningPhase = false;
+      _battleLog = <String>[
+        ..._battleLog,
+        'Banning phase complete! Starting battle...',
+      ];
+      notifyListeners();
+    }
+  }
+
+  String _getHeroDisplayName(String heroName) {
+    try {
+      final hero = _availableHeroesForBanning
+          .firstWhere((h) => h.name == heroName);
+      return hero.name;
+    } catch (e) {
+      return heroName;
+    }
+  }
 
   void startBattle({
     required List<HeroModel> playerTeam,
@@ -60,8 +221,18 @@ class BattleProvider extends ChangeNotifier {
     int? playerStartingIndex,
     int? aiStartingIndex,
   }) {
-    _playerTeam = playerTeam.take(5).toList();
-    _aiTeam = aiTeam.take(5).toList();
+    // Filter out banned heroes
+    final filteredPlayerTeam = playerTeam
+        .where((hero) => !_playerBannedHeroes.contains(hero.name))
+        .take(5)
+        .toList();
+    final filteredAiTeam = aiTeam
+        .where((hero) => !_aiEnemyBannedHeroes.contains(hero.name))
+        .take(5)
+        .toList();
+
+    _playerTeam = filteredPlayerTeam;
+    _aiTeam = filteredAiTeam;
     _playerTeamHp = _playerTeam.map((hero) => hero.maxHp).toList();
     _aiTeamHp = _aiTeam.map((hero) => hero.maxHp).toList();
     _playerSwitchCooldowns = List<int>.filled(_playerTeam.length, 0);
@@ -80,6 +251,7 @@ class BattleProvider extends ChangeNotifier {
     _isBattleOver = false;
     _playerWon = false;
     _roundWinner = null;
+    _isInBanningPhase = false;
     _battleLog = <String>[
       'Team battle started: ${_teamLabel(_playerTeam)} vs ${_teamLabel(_aiTeam)}',
       'Tap a bench hero to switch before the next turn.',
@@ -230,6 +402,12 @@ class BattleProvider extends ChangeNotifier {
     _playerWon = false;
     _roundWinner = null;
     _battleLog = <String>[];
+    _isInBanningPhase = false;
+    _availableHeroesForBanning = <HeroModel>[];
+    _playerBannedHeroes = <String>{};
+    _aiEnemyBannedHeroes = <String>{};
+    _isPlayerTurnToBan = true;
+    _banRound = 0;
     if (notify) {
       notifyListeners();
     }
@@ -440,6 +618,12 @@ class BattleProvider extends ChangeNotifier {
       return null;
     }
     return team[index];
+  }
+
+  List<HeroModel> _heroesFromNames(Set<String> names) {
+    return _availableHeroesForBanning
+        .where((hero) => names.contains(hero.name))
+        .toList();
   }
 
   int _activeHp(List<int> hpValues, int index) {
